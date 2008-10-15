@@ -1,0 +1,8 @@
+OCAML_LIB_MAD = @I_MAD@
+
+SOURCES = mp32wav.ml
+RESULT = mp32wav
+LIBS = unix mad
+INCDIRS = $(OCAML_LIB_MAD)
+
+-include OCamlMakefile

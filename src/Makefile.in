@@ -1,0 +1,52 @@
+# Copyright 2003-2006 Savonet team
+# libmad bindings for OCaml.
+#
+# by Samuel Mimram
+
+# $Id$
+
+OCAMLMAKEFILE = OCamlMakefile
+
+OCAMLFIND = @OCAMLFIND@
+OCAMLFIND_LDCONF = @OCAMLFIND_LDCONF@
+OCAMLC = @OCAMLC@
+OCAMLOPT = @OCAMLOPT@
+BEST = @BEST@
+OCAMLMKTOP = @OCAMLMKTOP@
+OCAMLCP = @OCAMLCP@
+OCAMLDEP = @OCAMLDEP@
+OCAMLLEX = @OCAMLLEX@
+OCAMLYACC = @OCAMLYACC@
+OCAMLDOC = @OCAMLDOC@
+LATEX = @LATEX@
+DVIPS = @DVIPS@
+PS2PDF = @PS2PDF@
+OCAMLLIBPATH = @CAMLLIBPATH@
+
+SOURCES = mad_stubs.c mad.mli mad.ml
+RES_CLIB_SUF = _stubs
+RESULT = mad
+LIBINSTALL_FILES = $(wildcard *.mli *.cmi *.cma *.cmxa *.cmx *.a *.so)
+OCAMLLDFLAGS =
+LIBS = unix
+ACLIBS = @LIBS@ @MAD_LIBS@
+LDFLAGS = @LDFLAGS@ @MAD_LDFLAGS@
+CLIBS = $(ACLIBS:-l%=%)
+CC = @CC@
+CFLAGS = @CFLAGS@ @MAD_CFLAGS@ -Wall -DCAML_NAME_SPACE
+CPPFLAGS = @CPPFLAGS@
+OCAMLDOCFLAGS = -stars
+
+all: $(BEST)
+
+byte: byte-code-library
+
+opt: native-code-library
+
+install: libinstall
+
+uninstall: libuninstall
+
+update: uninstall install
+
+-include $(OCAMLMAKEFILE)
