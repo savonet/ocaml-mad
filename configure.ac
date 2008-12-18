@@ -112,17 +112,25 @@ AC_PROG_CC()
 
 # Use pkg-config
 PKG_PROG_PKG_CONFIG()
+if ! test -n "$PKG_CONFIG"; then
+  PKG_CONFIG="/bin/false"
+fi
 
 # PKG_CHECK_MODULES loses when you need --libs-only-[lL]
 #PKG_CHECK_MODULES([MAD], [mad])
 if ! $PKG_CONFIG --exists mad; then
-	AC_MSG_ERROR([libmad not found])
+       # PKG_config check failed, trying header detection..
+       AC_CHECK_HEADERS([mad.h], [ac_have_mad="yes"])
+       if ! test -n "$ac_have_mad"; then
+         AC_MSG_ERROR([libmad not found])
+       fi
+else
+  MAD_CFLAGS=`$PKG_CONFIG --cflags mad`
+  MAD_LIBS=`$PKG_CONFIG --libs-only-l mad`
+  MAD_LDFLAGS=`$PKG_CONFIG --libs-only-L mad`
 fi
-MAD_CFLAGS=`$PKG_CONFIG --cflags mad`
 AC_SUBST([MAD_CFLAGS])
-MAD_LIBS=`$PKG_CONFIG --libs-only-l mad`
 AC_SUBST([MAD_LIBS])
-MAD_LDFLAGS=`$PKG_CONFIG --libs-only-L mad`
 AC_SUBST([MAD_LDFLAGS])
 
 # other progs
