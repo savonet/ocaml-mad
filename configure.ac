@@ -124,6 +124,9 @@ if ! $PKG_CONFIG --exists mad; then
        if ! test -n "$ac_have_mad"; then
          AC_MSG_ERROR([libmad not found])
        fi
+       MAD_CFLAGS=""
+       MAD_LIBS="-lmad"
+       MAD_LDFLAGS=""
 else
   MAD_CFLAGS=`$PKG_CONFIG --cflags mad`
   MAD_LIBS=`$PKG_CONFIG --libs-only-l mad`
