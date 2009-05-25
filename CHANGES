@@ -2,6 +2,12 @@ x.y.z ()
 =====
 * Fixed mad compilation variables
   when compiling without pkg-config.
+* Makefile now honnors LIBDIRS
+  variable for linking against libraries
+  located in other places than then standard
+  ones.
+* Added NO_CUSTOM to build
+  in standard mode.
 
 0.3.5 (05-01-2009)
 =====
