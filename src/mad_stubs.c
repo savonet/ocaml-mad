@@ -160,6 +160,10 @@ CAMLprim value ocaml_mad_openfile(value file)
   madfile_t *mf;
   FILE *fd = fopen(String_val(file), "r");
 
+  if (!fd)
+    caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
+                        caml_copy_string(strerror(errno)));
+
   /* Remove ID3 tag 
    * Ref: http://www.id3.org/id3v2.4.0-structure */
   char id3_header[3];
@@ -173,7 +177,8 @@ CAMLprim value ocaml_mad_openfile(value file)
   { /* Read version and flags */
     fread(&id3_header,sizeof(char),3,fd);
     /* Check for footer flag */
-    if (id3_header[2] & 0x10) // 0b00010000 doesn't seem to work will all compilers..
+    if (id3_header[2] & 0x10)
+      // 0b00010000 doesn't seem to work will all compilers..
       footer_len = 10;
     /* Get synchsafe len of ID3 tag */
     fread(&id3_len,sizeof(char),4,fd);
@@ -185,7 +190,8 @@ CAMLprim value ocaml_mad_openfile(value file)
   mf->read_func = (value)NULL;
   mf->fd = fd;
   if (!mf->fd)
-    caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"), caml_copy_string(strerror(errno)));
+    caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
+                        caml_copy_string(strerror(errno)));
   mf->buf = (unsigned char*)malloc(BUFFER_SIZE);
 
   // The amount of data "secretly" owned by the madfile_t may be underestimated
