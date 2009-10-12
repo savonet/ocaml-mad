@@ -1,4 +1,4 @@
-x.y.z ()
+0.3.6 (12-10-2009)
 =====
 * Added support for --enable-debugging configure option
 * Fixed mad compilation variables
