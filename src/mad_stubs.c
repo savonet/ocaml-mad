@@ -434,6 +434,7 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
   char *output_buf = NULL;
   int output_pos = 0;
   int i;
+  int chans = MAD_NCHANNELS(&mf->frame.header);
 
   do { mf_fill_buffer(mf); }
     while (mf_decode(mf) == 1);
@@ -444,7 +445,7 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
    * are temporarily stored in a buffer that is flushed when
    * full.
    */
-  ret = caml_alloc_string(mf->synth.pcm.length * 4);
+  ret = caml_alloc_string(mf->synth.pcm.length * chans * 2);
   output_buf = String_val(ret);
 
   for(i = 0; i < mf->synth.pcm.length; i++)
@@ -455,16 +456,19 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
     sample = short_of_madfixed(mf->synth.pcm.samples[0][i]);
     *(output_buf + output_pos + 0) = sample & 0xff;
     *(output_buf + output_pos + 1) = sample >> 8;
+    output_pos += 2;
 
     /* Right channel. If the decoded stream is monophonic then
-     * the right output channel is the same as the left one.
+     * the right output channel is the same as the left one
+     * and we omit it here.
      */
-    if (MAD_NCHANNELS(&mf->frame.header) == 2)
+    if (chans > 1)
+    {
       sample = short_of_madfixed(mf->synth.pcm.samples[1][i]);
-    *(output_buf + output_pos + 2) = sample & 0xff;
-    *(output_buf + output_pos + 3) = sample >> 8;
-
-    output_pos += 4;
+      *(output_buf + output_pos + 0) = sample & 0xff;
+      *(output_buf + output_pos + 1) = sample >> 8;
+      output_pos += 2; 
+    }
   }
 
   CAMLreturn(ret);

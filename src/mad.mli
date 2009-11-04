@@ -43,20 +43,6 @@ exception Openfile_error of string
 (** Could not close a file. *)
 exception Closefile_error of string
 
-(** {1 Parameters of the output format} *)
-
-(** Number of channels of the output. *)
-val wav_output_channels : int
-
-(** Sample size of the output in bits. *)
-val wav_output_sample_size : int
-
-(** Are the output samples in big endian? *)
-val wav_output_big_endian : bool
-
-(** Are the output samples signed? *)
-val wav_output_signed : bool
-
 (** {1 Decoding files} *)
 
 (** An mp3 file opened for decoding. *)
@@ -89,7 +75,10 @@ val close : mad_file -> unit
   *)
 val get_current_position : mad_file -> int
 
-(** Decode an mp3 frame. *)
+(** Decode an mp3 frame. 
+  * Returned data in interleaved when
+  * there are two channels, and mono data
+  * when there is only one. *)
 val decode_frame : mad_file -> string
 
 (** Decode an mp3 frame. *)
@@ -101,12 +90,6 @@ val decode_frame_float : mad_file -> float array array
  * [decode_frame_float].
  *)
 val get_output_format : mad_file -> int * int * int
-
-(** {1 Some info about MP3 files} *)
-
-(** Get the samplefreq of a file.
-  * This is a dirty hack, you should prefer get_output_format. *)
-val samplefreq : string -> int
 
 (** Compute the duration of a file, in seconds.
   * Never raises any exception, but returns 0. in case of error.

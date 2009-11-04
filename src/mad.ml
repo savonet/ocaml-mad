@@ -55,85 +55,36 @@ external decode_frame_float : mad_file -> float array array = "ocaml_mad_decode_
 
 external get_output_format : mad_file -> int * int * int = "ocaml_mad_get_synth_pcm_format"
 
-let wav_output_channels = 2
-let wav_output_sample_size = 16
-let wav_output_big_endian = false
-let wav_output_signed = true
-
-let get_samplefreq f =
-  let bits_in i pos length =
-    ((int_of_char i) lsr pos) mod (1 lsl length)
-  in
-  let samplefreq_array =
-    [|
-      [| 11025; 12000; 8000; 0 |];
-      [| |];
-      [| 22050; 24000; 16000; 0 |];
-      [| 44100; 48000; 32000; 0 |];
-    |]
-  in
-  let read n =
-    let ans = String.create n in
-      assert (n = Unix.read f ans 0 n) ;
-      ans
-  in
-  let read_byte () =
-    int_of_char (read 1).[0]
-  in
-  let read_size () =
-    let buf = read 4 in
-    let b0 = int_of_char buf.[0] in
-    let b1 = int_of_char buf.[1] in
-    let b2 = int_of_char buf.[2] in
-    let b3 = int_of_char buf.[3] in
-      (* TODO* : lsl 7 -> overlapping ?? *)
-      (((((b0 lsl 7) lor b1) lsl 7) lor b2) lsl 7) lor b3
-  in
-    if read 3 = "ID3" then
-      (
-        ignore (Unix.lseek f 3 Unix.SEEK_CUR);
-        ignore (Unix.lseek f (read_size ()) Unix.SEEK_CUR);
-      )
-    else
-      ignore (Unix.lseek f 0 Unix.SEEK_SET);
-    (* Try to seek to the next frame. *)
-    while read_byte () <> 0xff do () done;
-    let buf = read 3 in
-    let version = bits_in buf.[0] 3 2 in
-    let samplefreq_i = bits_in buf.[1] 2 2 in
-      samplefreq_array.(version).(samplefreq_i)
-
-let samplefreq fname =
-  let f = Unix.openfile fname [Unix.O_RDONLY] 0o400 in
-  try
-    let freq = get_samplefreq f in
-      Unix.close f ;
-      freq
-  with
-    | e -> Unix.close f ; raise e
-
 let duration file =
-  let bytes mf =
-    let bytes = ref 0 in
-      try
-        while true do
-          bytes := !bytes + String.length (decode_frame mf)
-        done ;
-        assert false
-      with _ -> !bytes
+  let mf = openfile file in
+  let close () = 
+    try
+      close mf
+    with _ -> ()
   in
   try
-    let mf = openfile file in
-    let ret = 
+    let duration = 
       try
-        let samplefreq = samplefreq file in
-          (float (8 * bytes mf)) /.
-          (float (wav_output_channels*wav_output_sample_size*samplefreq))
+        (* Decode some data *)
+        let decode_samples () = 
+          let data = decode_frame_float mf in
+          Array.length data.(0)
+        in
+        let samples = decode_samples () in
+        (* Get data information *)
+        let (samplefreq,_,_) = get_output_format mf in
+        (* The decoding loop *)
+        let rec decode_loop samples =
+          try
+            let samples = samples + decode_samples () in
+            decode_loop samples
+          with _ -> samples
+        in
+        let decoded_samples = decode_loop samples in
+        (float decoded_samples) /. (float samplefreq)
       with _ -> 0.
     in
-    try 
-      close mf ;
-      ret
-    with _ -> ret
+    close ();
+    duration
   with
-    | _ -> 0.
+    | _ -> close (); 0.

@@ -1,3 +1,10 @@
+0.3.7 ()
+=====
+* Changed decode_frame to return
+  only mono data when there is only one channel.
+* Removed confusing wav_* and samplefreq API
+* Fixed duration to use decode_float
+
 0.3.6 (12-10-2009)
 =====
 * Added support for --enable-debugging configure option
