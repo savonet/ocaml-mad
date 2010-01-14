@@ -39,7 +39,11 @@
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+#ifdef __MINGW32__
+#include <winsock.h>
+#else
 #include <netinet/in.h>
+#endif
 #include <stdint.h>
 #include <mad.h>
 

@@ -4,6 +4,7 @@
   only mono data when there is only one channel.
 * Removed confusing wav_* and samplefreq API
 * Fixed duration to use decode_float
+* Fixed compilation using MinGW for win32
 
 0.3.6 (12-10-2009)
 =====
