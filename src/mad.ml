@@ -64,25 +64,23 @@ let duration file =
   in
   try
     let duration = 
-      try
-        (* Decode some data *)
-        let decode_samples () = 
-          let data = decode_frame_float mf in
-          Array.length data.(0)
-        in
-        let samples = decode_samples () in
-        (* Get data information *)
-        let (samplefreq,_,_) = get_output_format mf in
-        (* The decoding loop *)
-        let rec decode_loop samples =
-          try
-            let samples = samples + decode_samples () in
-            decode_loop samples
-          with _ -> samples
-        in
-        let decoded_samples = decode_loop samples in
-        (float decoded_samples) /. (float samplefreq)
-      with _ -> 0.
+      (* Decode some data *)
+      let decode_samples () = 
+      let data = decode_frame_float mf in
+        Array.length data.(0)
+      in
+      let samples = decode_samples () in
+      (* Get data information *)
+      let (samplefreq,_,_) = get_output_format mf in
+      (* The decoding loop *)
+      let rec decode_loop samples =
+        try
+          let samples = samples + decode_samples () in
+          decode_loop samples
+        with _ -> samples
+      in
+      let decoded_samples = decode_loop samples in
+      (float decoded_samples) /. (float samplefreq)
     in
     close ();
     duration
