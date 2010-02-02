@@ -5,6 +5,7 @@
 * Removed confusing wav_* and samplefreq API
 * Fixed duration to use decode_float
 * Fixed compilation using MinGW for win32
+* Forced opening files in binary mode.
 
 0.3.6 (12-10-2009)
 =====

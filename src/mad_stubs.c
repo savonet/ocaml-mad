@@ -162,7 +162,7 @@ CAMLprim value ocaml_mad_openfile(value file)
   CAMLparam1(file);
   CAMLlocal1(block);
   madfile_t *mf;
-  FILE *fd = fopen(String_val(file), "r");
+  FILE *fd = fopen(String_val(file), "rb");
 
   if (!fd)
     caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
