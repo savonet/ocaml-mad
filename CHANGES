@@ -1,4 +1,4 @@
-0.3.7 ()
+0.4.0 (19-08-2010)
 =====
 * Changed decode_frame to return
   only mono data when there is only one channel.
