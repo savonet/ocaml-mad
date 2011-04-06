@@ -4,7 +4,7 @@
 
 PROGNAME = ocaml-mad
 DISTFILES = bootstrap CHANGES configure configure.ac COPYING Makefile README \
-            src/OCamlMakefile src/Makefile.in \
+            src/OCamlMakefile src/Makefile.in m4/*.m4 \
             src/META.in src/*.ml src/*.mli src/*.c \
             examples/configure* examples/*Makefile* examples/*.ml \
             doc/html
