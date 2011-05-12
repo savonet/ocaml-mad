@@ -1,3 +1,9 @@
+0.4.1 (12-05-2011)
+=====
+* Added [skip_id3tags] to skip id3 tags
+  on mad streams (e.g. handlers opened with
+  [openstream]).
+
 0.4.0 (19-08-2010)
 =====
 * Changed decode_frame to return
