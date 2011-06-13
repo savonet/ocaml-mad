@@ -45,9 +45,32 @@ external openfile : string -> mad_file = "ocaml_mad_openfile"
 
 external openstream : (int -> (string * int)) -> mad_file = "ocaml_mad_openstream"
 
+external skip_id3tags : (int -> (string * int)) -> (int -> int) -> (unit -> int) -> unit = "ocaml_mad_skip_id3tag"
+
+let skip_id3tags ~read ~seek ~tell =
+  skip_id3tags read seek tell
+
 external close : mad_file -> unit = "ocaml_mad_close"
 
 external get_current_position : mad_file -> int = "ocaml_mad_get_current_position"
+
+external get_current_time : mad_file -> int -> int = "ocaml_mad_time"
+
+type time_unit = Hours | Minutes | Seconds | Deciseconds | Centiseconds | Milliseconds
+
+let int_of_time_unit =
+  function 
+    | Hours -> -2
+    | Minutes -> -1
+    | Seconds -> 0
+    | Deciseconds -> 10
+    | Centiseconds -> 100
+    | Milliseconds -> 1000
+
+let get_current_time dec u = 
+  get_current_time dec (int_of_time_unit u)
+
+external skip_frame : mad_file -> unit = "ocaml_mad_skip_frame"
 
 external decode_frame : mad_file -> string = "ocaml_mad_decode_frame"
 
@@ -63,26 +86,17 @@ let duration file =
     with _ -> ()
   in
   try
-    let duration = 
-      (* Decode some data *)
-      let decode_samples () = 
-      let data = decode_frame_float mf in
-        Array.length data.(0)
-      in
-      let samples = decode_samples () in
-      (* Get data information *)
-      let (samplefreq,_,_) = get_output_format mf in
-      (* The decoding loop *)
-      let rec decode_loop samples =
-        try
-          let samples = samples + decode_samples () in
-          decode_loop samples
-        with _ -> samples
-      in
-      let decoded_samples = decode_loop samples in
-      (float decoded_samples) /. (float samplefreq)
+    begin 
+     try
+       while true do
+         skip_frame mf
+       done
+     with _ -> ()
+    end;
+    let ret = 
+      (float (get_current_time mf Centiseconds)) /. 100. 
     in
     close ();
-    duration
+    ret
   with
     | _ -> close (); 0.

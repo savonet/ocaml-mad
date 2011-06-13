@@ -63,6 +63,18 @@ val openfile : string -> mad_file
 val openstream : (int -> (string * int)) -> mad_file
 
 (**
+  * Skip ID3 tags that may be present at 
+  * the beginning of a stream. This function
+  * may be used to a mp3 file opened using [openstream].
+  * ID3 tags are always skipped when using [openfile].
+  *
+  * [seek] is a callback to seek to an absolute
+  * position on the encoded data, and [tell] a callback
+  * to fetch the current position. [read] is the reading
+  * callback. *)
+val skip_id3tags : read:(int -> (string * int)) -> seek:(int -> int) -> tell:(unit -> int) -> unit
+
+(**
   * Close an mp3 file previously opened with [openfile].
   *
   * @raise Closefile_error if an error occured while trying to close the file.
@@ -75,6 +87,13 @@ val close : mad_file -> unit
   *)
 val get_current_position : mad_file -> int
 
+type time_unit = Hours | Minutes | Seconds | Deciseconds | Centiseconds | Milliseconds
+
+(**
+  * Get the current time position (in the given unit) of the decoder.
+  *)
+val get_current_time : mad_file -> time_unit -> int
+
 (** Decode an mp3 frame. 
   * Returned data in interleaved when
   * there are two channels, and mono data
@@ -84,6 +103,10 @@ val decode_frame : mad_file -> string
 (** Decode an mp3 frame. *)
 val decode_frame_float : mad_file -> float array array
 
+(** Skip one frame. The current time/position is
+  * updated but the frame is not decoded. *)
+val skip_frame : mad_file -> unit
+
 (*
  * Get the samplerate, number of channels and samples per channel currently in
  * the synth. This should be called after [decode_frame] or
@@ -92,7 +115,5 @@ val decode_frame_float : mad_file -> float array array
 val get_output_format : mad_file -> int * int * int
 
 (** Compute the duration of a file, in seconds.
-  * Never raises any exception, but returns 0. in case of error.
-  * The returned duration is exact but its computation is not efficient,
-  * as it proceeds by completely decoding the file. *)
+  * Never raises any exception, but returns 0. in case of error. *)
 val duration : string -> float
