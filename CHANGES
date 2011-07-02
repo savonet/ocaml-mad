@@ -1,3 +1,14 @@
+0.4.2 (02-07-2011)
+=====
+* Changed implementation to
+  make it possible to process an mp3
+  frame without decoding it. This helps
+  for seeking in mp3 files and computing
+  duration.
+  Functions added: 
+    - [get_current_time]
+    - [skip_frame]
+
 0.4.1 (12-05-2011)
 =====
 * Added [skip_id3tags] to skip id3 tags
