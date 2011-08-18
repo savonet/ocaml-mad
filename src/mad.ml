@@ -28,6 +28,33 @@
 
 type mad_file
 
+type mpeg_layer = 
+  | Layer_I
+  | Layer_II
+  | Layer_III
+
+type emphasis = 
+  | None
+  | MS_50_15
+  | CCITT_J_17
+  | Reserved
+
+type channel_mode = 
+  | Single_channel
+  | Dual_channel
+  | Joint_stereo
+  | Stereo
+
+type frame_format = {
+    layer:               mpeg_layer;
+    mode:                channel_mode;
+    emphasis:            emphasis;
+    bitrate:             int;
+    samplerate:          int;
+    channels:            int;
+    samples_per_channel: int 
+  }
+
 exception Mad_error of string
 exception Read_error of string
 exception End_of_stream
@@ -76,7 +103,11 @@ external decode_frame : mad_file -> string = "ocaml_mad_decode_frame"
 
 external decode_frame_float : mad_file -> float array array = "ocaml_mad_decode_frame_float"
 
-external get_output_format : mad_file -> int * int * int = "ocaml_mad_get_synth_pcm_format"
+external get_frame_format : mad_file -> frame_format = "ocaml_mad_get_frame_format"
+
+let get_output_format mf = 
+  let header = get_frame_format mf in
+  header.samplerate, header.channels, header.samples_per_channel
 
 let duration file =
   let mf = openfile file in

@@ -1,3 +1,9 @@
+0.4.3 ()
+=====
+* Added more general frame format reporting,
+  including mpeg layer, channel mode and emphasis
+  information.
+
 0.4.2 (02-07-2011)
 =====
 * Changed implementation to

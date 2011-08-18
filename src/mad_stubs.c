@@ -577,16 +577,20 @@ CAMLprim value ocaml_mad_time(value madf, value u)
   CAMLreturn(Val_long(mad_timer_count(mf->timer,Int_val(u))));
 }
 
-CAMLprim value ocaml_mad_get_synth_pcm_format(value madf)
+CAMLprim value ocaml_mad_get_frame_format(value madf)
 {
   CAMLparam1(madf);
   CAMLlocal1(ans);
   madfile_t *mf = Madfile_val(madf);
 
-  ans = caml_alloc_tuple(3);
-  Store_field(ans, 0, Val_int(mf->synth.pcm.samplerate));
-  Store_field(ans, 1, Val_int(mf->synth.pcm.channels));
-  Store_field(ans, 2, Val_int(mf->synth.pcm.length));
+  ans = caml_alloc_tuple(7);
+  Store_field(ans, 0, Val_int(mf->frame.header.layer-1)); // Layers start at 1..
+  Store_field(ans, 1, Val_int(mf->frame.header.mode));
+  Store_field(ans, 2, Val_int(mf->frame.header.emphasis));
+  Store_field(ans, 3, Val_long(mf->frame.header.bitrate));
+  Store_field(ans, 4, Val_int(mf->synth.pcm.samplerate));
+  Store_field(ans, 5, Val_int(mf->synth.pcm.channels));
+  Store_field(ans, 6, Val_int(mf->synth.pcm.length));
 
   CAMLreturn(ans);
 }

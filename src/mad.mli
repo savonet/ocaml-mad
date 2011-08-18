@@ -48,6 +48,33 @@ exception Closefile_error of string
 (** An mp3 file opened for decoding. *)
 type mad_file
 
+type mpeg_layer =
+  | Layer_I
+  | Layer_II
+  | Layer_III
+
+type emphasis =
+  | None
+  | MS_50_15
+  | CCITT_J_17
+  | Reserved
+
+type channel_mode =
+  | Single_channel
+  | Dual_channel
+  | Joint_stereo
+  | Stereo
+
+type frame_format = {
+    layer:               mpeg_layer;
+    mode:                channel_mode;
+    emphasis:            emphasis;
+    bitrate:             int;
+    samplerate:          int;
+    channels:            int;
+    samples_per_channel: int
+  }
+
 (**
   * Open an mp3 file.
   *
@@ -108,10 +135,12 @@ val decode_frame_float : mad_file -> float array array
 val skip_frame : mad_file -> unit
 
 (*
- * Get the samplerate, number of channels and samples per channel currently in
- * the synth. This should be called after [decode_frame] or
+ * Get the format of the latest decoded frame. This should be called after [decode_frame] or
  * [decode_frame_float].
  *)
+val get_frame_format : mad_file -> frame_format
+
+(* This function is DEPRECATED. Please use [get_frame_format] instead. *)
 val get_output_format : mad_file -> int * int * int
 
 (** Compute the duration of a file, in seconds.
