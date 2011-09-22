@@ -2,6 +2,3 @@
 
 aclocal -I m4
 autoconf
-
-cd examples
-autoconf
