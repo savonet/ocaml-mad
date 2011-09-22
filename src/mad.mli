@@ -72,7 +72,10 @@ type frame_format = {
     bitrate:             int;
     samplerate:          int;
     channels:            int;
-    samples_per_channel: int
+    samples_per_channel: int;
+    original:            bool;
+    copyright:           bool;
+    private_bit:         bool
   }
 
 (**

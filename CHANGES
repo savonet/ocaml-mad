@@ -1,3 +1,8 @@
+0.4.4 ()
+=====
+* Extended new frame format, reporting 
+  private, copyright and original bits.
+
 0.4.3 (24-08-2011)
 =====
 * Added more general frame format reporting,

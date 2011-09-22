@@ -582,8 +582,17 @@ CAMLprim value ocaml_mad_get_frame_format(value madf)
   CAMLparam1(madf);
   CAMLlocal1(ans);
   madfile_t *mf = Madfile_val(madf);
+  int private = 0;
+  if ((mf->frame.header.private_bits & MAD_PRIVATE_HEADER) > 0)
+    private = 1;
+  int copyright = 0;
+  if ((mf->frame.header.flags & MAD_FLAG_COPYRIGHT) > 0)
+    copyright = 1;
+  int original = 0;
+  if ((mf->frame.header.flags & MAD_FLAG_ORIGINAL) > 0)
+    original = 1;
 
-  ans = caml_alloc_tuple(7);
+  ans = caml_alloc_tuple(10);
   Store_field(ans, 0, Val_int(mf->frame.header.layer-1)); // Layers start at 1..
   Store_field(ans, 1, Val_int(mf->frame.header.mode));
   Store_field(ans, 2, Val_int(mf->frame.header.emphasis));
@@ -591,6 +600,9 @@ CAMLprim value ocaml_mad_get_frame_format(value madf)
   Store_field(ans, 4, Val_int(mf->synth.pcm.samplerate));
   Store_field(ans, 5, Val_int(mf->synth.pcm.channels));
   Store_field(ans, 6, Val_int(mf->synth.pcm.length));
+  Store_field(ans, 7, Val_bool(original));
+  Store_field(ans, 8, Val_bool(copyright));
+  Store_field(ans, 9, Val_bool(private));
 
   CAMLreturn(ans);
 }
