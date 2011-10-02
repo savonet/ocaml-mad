@@ -3,8 +3,9 @@
 # $Id$
 
 PROGNAME = ocaml-mad
-DISTFILES = bootstrap CHANGES configure configure.ac COPYING Makefile README \
-            src/OCamlMakefile src/Makefile.in m4/*.m4 \
+DISTFILES = @AUTOCONF_INSTALL_FILES@ \
+			bootstrap CHANGES configure configure.ac COPYING Makefile.in \
+		   	README src/OCamlMakefile src/Makefile.in \
             src/META.in src/*.ml src/*.mli src/*.c \
             examples/configure* examples/*Makefile* examples/*.ml \
             doc/html
@@ -35,7 +36,7 @@ distclean: clean
 
 dist: doc
 	VERSION="$(shell grep 'AC_INIT' configure.ac)"; \
-		VERSION=`echo "$$VERSION" | sed -e 's/AC_INIT([^,]*, \([^,]*\), .*)/\1/'`; \
+		VERSION=`echo "$$VERSION" | sed -e 's/AC_INIT([^,]*,\[\([^,]*\)\],.*)/\1/'`; \
 		mkdir $(PROGNAME)-$$VERSION; \
 		cp -R -L --parents $(DISTFILES) $(PROGNAME)-$$VERSION; \
 		tar zcvf $(PROGNAME)-$$VERSION.tar.gz $(PROGNAME)-$$VERSION; \
