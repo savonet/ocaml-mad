@@ -1,7 +1,7 @@
-0.4.4 ()
+0.4.4 (04-10-2011)
 =====
-* Extended new frame format, reporting 
-  private, copyright and original bits.
+* Report more info about frames: private, copyright and original bits.
+* New decode_msg example that uses the above feature.
 
 0.4.3 (24-08-2011)
 =====
