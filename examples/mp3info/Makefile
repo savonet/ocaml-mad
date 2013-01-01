@@ -1,7 +1,7 @@
-OCAML_LIB_MAD = ../src
+OCAML_LIB_MAD = ../../src
 
-SOURCES = decode_msg.ml
-RESULT = decode_msg
+SOURCES = mp3info.ml
+RESULT = mp3info
 LIBS = unix mad
 INCDIRS = $(OCAML_LIB_MAD)
 OCAMLLDFLAGS += -custom

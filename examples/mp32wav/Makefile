@@ -1,4 +1,4 @@
-OCAML_LIB_MAD = ../src
+OCAML_LIB_MAD = ../../src
 
 SOURCES = mp32wav.ml
 RESULT = mp32wav
