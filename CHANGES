@@ -1,3 +1,7 @@
+0.4.6 ()
+=====
+* Minor fixes around GC when using the stream API.
+
 0.4.5 (03-08-2015)
 =====
 * Dummy github release.

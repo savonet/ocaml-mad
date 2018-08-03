@@ -109,7 +109,7 @@ static void finalize_madfile(value madf)
 {
   madfile_t *mf = Madfile_val(madf);
   if (mf->read_func)
-    caml_remove_global_root(&mf->read_func);
+    caml_remove_generational_global_root(&mf->read_func);
   mad_synth_finish(&mf->synth);
   mad_frame_finish(&mf->frame);
   mad_stream_finish(&mf->stream);
@@ -136,6 +136,7 @@ static inline madfile_t* create_mf()
   mad_frame_init(&mf->frame);
   mad_synth_init(&mf->synth);
   mad_timer_reset(&mf->timer);
+  mf->read_func = (value)NULL;
 
   return(mf);
 }
@@ -190,7 +191,6 @@ CAMLprim value ocaml_mad_openfile(value file)
     rewind(fd);
 
   mf = create_mf();
-  mf->read_func = (value)NULL;
   mf->fd = fd;
   if (!mf->fd)
     caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
@@ -215,7 +215,7 @@ CAMLprim value ocaml_mad_openstream(value read_func)
 
   mf = create_mf();
   mf->read_func = read_func;
-  caml_register_global_root(&mf->read_func);
+  caml_register_generational_global_root(&mf->read_func);
   mf->fd = 0;
   mf->buf = (unsigned char*)malloc(BUFFER_SIZE);
 
