@@ -162,7 +162,31 @@ CAMLprim value ocaml_mad_openfile(value file)
   CAMLparam1(file);
   CAMLlocal1(block);
   madfile_t *mf;
+
+#ifdef WIN32
+  FILE *fd;
+  const char *fname = String_val(file);
+
+  int size = MultiByteToWideChar(CP_UTF8, 0, fname, -1, NULL, 0);
+  if (size == 0)
+    caml_raise_out_of_memory();
+
+  wchar_t *wfname = malloc(size*sizeof(wchar_t));
+  if (wfname == NULL)
+    caml_raise_out_of_memory();
+
+  if (MultiByteToWideChar(CP_UTF8, 0, fname, -1, wfname, size) == 0)
+    caml_raise_out_of_memory();
+
+  errno_t err = _wfopen_s(&fd, wfname, L"rb");
+  free(wfname);
+
+  if (err != 0)
+    caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
+                        caml_copy_string(strerror(err)));
+#else
   FILE *fd = fopen(String_val(file), "rb");
+#endif
 
   if (!fd)
     caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),

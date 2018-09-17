@@ -1,6 +1,7 @@
 0.4.6 ()
 =====
 * Minor fixes around GC when using the stream API.
+* Fix filename encoding in openfile on windows platforms.
 
 0.4.5 (03-08-2015)
 =====
