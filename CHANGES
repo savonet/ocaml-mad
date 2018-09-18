@@ -1,4 +1,4 @@
-0.4.6 ()
+0.4.6 (17-09-2018)
 =====
 * Minor fixes around GC when using the stream API.
 * Fix filename encoding in openfile on windows platforms.
