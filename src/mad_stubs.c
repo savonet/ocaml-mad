@@ -26,12 +26,14 @@
 
 /* $Id$ */
 
+#define CAML_INTERNALS
 #include <caml/alloc.h>
 #include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/misc.h>
+#include <caml/osdeps.h>
 #include <caml/mlvalues.h>
 #include <caml/signals.h>
 
@@ -165,21 +167,10 @@ CAMLprim value ocaml_mad_openfile(value file)
 
 #ifdef WIN32
   FILE *fd;
-  const char *fname = String_val(file);
+  wchar_t *fname = caml_stat_strdup_to_os(String_val(file));
 
-  int size = MultiByteToWideChar(CP_UTF8, 0, fname, -1, NULL, 0);
-  if (size == 0)
-    caml_raise_out_of_memory();
-
-  wchar_t *wfname = malloc(size*sizeof(wchar_t));
-  if (wfname == NULL)
-    caml_raise_out_of_memory();
-
-  if (MultiByteToWideChar(CP_UTF8, 0, fname, -1, wfname, size) == 0)
-    caml_raise_out_of_memory();
-
-  errno_t err = _wfopen_s(&fd, wfname, L"rb");
-  free(wfname);
+  errno_t err = _wfopen_s(&fd, fname, L"rb");
+  free(fname);
 
   if (err != 0)
     caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),

@@ -1,3 +1,7 @@
+0.4.7 ()
+=====
+* Use conversion functions provided by OCaml for filename.
+
 0.4.6 (17-09-2018)
 =====
 * Minor fixes around GC when using the stream API.
