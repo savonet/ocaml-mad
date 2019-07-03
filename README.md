@@ -1,33 +1,39 @@
 OCaml-mad - OCaml bindings for the libmad
 =========================================
 
-Author: Samuel Mimram <samuel.mimram@ens-lyon.org>
-Email: savonet-users@lists.sourceforge.net
-Homepage: http://savonet.sourceforge.net/
+Authors: Samuel Mimram and Romain Beauxis
 
-Copyright (c) 2003-2006 the Savonet Team.
+Homepage: https://github.com/savonet/ocaml-mad
+
+Copyright (c) 2003-2019 the Savonet Team.
 
 
 Dependencies
 ============
+
 To build this library you need to have OCaml 3.07 and the libmad.
 
 
 Installation
 ============
+
 To compile the program type:
 
+```
 ./configure
 make
+```
 
 (you can set specific build options with the configure script, see
-./configure --help) then, to install it, type as root:
+`./configure --help`) then, to install it, type as root:
 
+```
 make install
-
+```
 
 License
 =======
+
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2
@@ -46,8 +52,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 Borrowed code
 =============
 
-The libmad's stubs are based on Madlld example which can be found at:
-http://www.bsd-dk.dk/~elrond/audio/madlld/
+The libmad's stubs are based on [Madlld
+example](http://www.bsd-dk.dk/~elrond/audio/madlld/).
 
 Madlld is copyright 2001 by Bertrand Petit.
 Madlld is distributed under the following license:
@@ -78,7 +84,3 @@ BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-The version of this README is:
-$Id$
