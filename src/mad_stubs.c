@@ -33,7 +33,6 @@
 #include <caml/fail.h>
 #include <caml/memory.h>
 #include <caml/misc.h>
-#include <caml/osdeps.h>
 #include <caml/mlvalues.h>
 #include <caml/signals.h>
 
