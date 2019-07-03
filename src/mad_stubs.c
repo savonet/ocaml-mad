@@ -34,6 +34,9 @@
 #include <caml/memory.h>
 #include <caml/misc.h>
 #include <caml/mlvalues.h>
+#ifdef WIN32
+#include <caml/osdeps.h>
+#endif
 #include <caml/signals.h>
 
 #include <stdio.h>
