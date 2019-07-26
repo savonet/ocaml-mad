@@ -26,6 +26,8 @@
 
 (* $Id$ *)
 
+type read = bytes -> int -> int -> int
+
 type mad_file
 
 type mpeg_layer = 
@@ -73,9 +75,9 @@ let _ =
 
 external openfile : string -> mad_file = "ocaml_mad_openfile"
 
-external openstream : (int -> (string * int)) -> mad_file = "ocaml_mad_openstream"
+external openstream : read -> mad_file = "ocaml_mad_openstream"
 
-external skip_id3tags : (int -> (string * int)) -> (int -> int) -> (unit -> int) -> unit = "ocaml_mad_skip_id3tag"
+external skip_id3tags : read -> (int -> int) -> (unit -> int) -> unit = "ocaml_mad_skip_id3tag"
 
 let skip_id3tags ~read ~seek ~tell =
   skip_id3tags read seek tell
