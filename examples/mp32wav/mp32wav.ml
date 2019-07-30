@@ -97,6 +97,9 @@ let _ =
 
   (* Using mad to decode the mp3. *)
   let tmpdst, oc = Filename.open_temp_file ~mode:[Open_binary] "mp32wav" ".raw" in
+  let is_first = ref true in
+  let channels = ref 2 in
+  let samplerate = ref 44100 in
   let tot = (Unix.stat !src).Unix.st_size in
   let mf = Mad.openfile !src in
     (
@@ -104,6 +107,13 @@ let _ =
         while true
         do
           let d = Mad.decode_frame mf in
+          if !is_first then
+           begin
+            let sr,ch,_ = Mad.get_output_format mf in
+            samplerate := sr;
+            channels := ch;
+            is_first := false
+          end;
             output_string oc d;
             progress_bar "Decoding mp3:" (Mad.get_current_position mf) tot
         done;
@@ -124,9 +134,9 @@ let _ =
       output_int oc 16;
       output_short oc 1; (* WAVE_FORMAT_PCM *)
       output_short oc 2; (* channels *)
-      output_int oc 44100; (* freq *)
-      output_int oc (44100 * 2 * 2); (* bytes / s *)
-      output_short oc (2 * 2); (* block alignment *)
+      output_int oc !samplerate; (* freq *)
+      output_int oc (!samplerate * !channels * 2); (* bytes / s *)
+      output_short oc (!channels * 2); (* block alignment *)
       output_short oc 16; (* bits per sample *)
       output_string oc "data";
       (* TODO: uncomment the following line if you only hear noise *)
@@ -134,7 +144,7 @@ let _ =
       output_int oc datalen;
       (
         let buflen = 256 * 1024 in
-        let buf = String.create buflen in
+        let buf = Bytes.create buflen in
         let r = ref 1 in
         let pos = ref 0 in
         let tot = datalen in
