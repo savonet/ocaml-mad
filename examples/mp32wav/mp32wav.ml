@@ -104,8 +104,7 @@ let _ =
   let mf = Mad.openfile !src in
     (
       try
-        while true
-        do
+        while true do
           let d = Mad.decode_frame mf in
           if !is_first then
            begin
@@ -116,8 +115,7 @@ let _ =
           end;
             output_string oc d;
             progress_bar "Decoding mp3:" (Mad.get_current_position mf) tot
-        done;
-        close_out oc; Mad.close mf
+        done
       with
         | Mad.End_of_stream -> close_out oc; Mad.close mf
     );

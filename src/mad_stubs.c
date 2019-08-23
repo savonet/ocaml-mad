@@ -51,7 +51,11 @@
 #include <stdint.h>
 #include <mad.h>
 
-#define BUFFER_SIZE 16*1024
+// The theoretical maximum frame size is 2881 bytes,
+// MPEG 2.5 Layer II, 8000 Hz @ 160 kbps, with a padding slot plus 8 byte MAD_BUFFER_GUARD.
+#define READ_SIZE 4096
+#define BUFFER_SIZE READ_SIZE+MAD_BUFFER_GUARD
+#define FRAME_SIZE 2881
 
 struct madfile__t
 {
@@ -61,7 +65,8 @@ struct madfile__t
   mad_timer_t timer;
   FILE *fd;
   value read_func;
-  unsigned char *buf;
+  unsigned char buf[BUFFER_SIZE];
+  int eof;
 };
 
 typedef struct madfile__t madfile_t;
@@ -117,7 +122,6 @@ static void finalize_madfile(value madf)
   mad_synth_finish(&mf->synth);
   mad_frame_finish(&mf->frame);
   mad_stream_finish(&mf->stream);
-  free(mf->buf);
   free(mf);
 }
 
@@ -141,6 +145,7 @@ static inline madfile_t* create_mf()
   mad_synth_init(&mf->synth);
   mad_timer_reset(&mf->timer);
   mf->read_func = (value)NULL;
+  mf->eof = 0;
 
   return(mf);
 }
@@ -212,7 +217,7 @@ CAMLprim value ocaml_mad_openfile(value file)
   if (!mf->fd)
     caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
                         caml_copy_string(strerror(errno)));
-  mf->buf = (unsigned char*)malloc(BUFFER_SIZE);
+  memset(mf->buf,0,BUFFER_SIZE);
 
   // The amount of data "secretly" owned by the madfile_t may be underestimated
   // here since I only take into account mf->buf, while it may be possible
@@ -234,7 +239,7 @@ CAMLprim value ocaml_mad_openstream(value read_func)
   mf->read_func = read_func;
   caml_register_generational_global_root(&mf->read_func);
   mf->fd = 0;
-  mf->buf = (unsigned char*)malloc(BUFFER_SIZE);
+  memset(mf->buf,0,BUFFER_SIZE);
 
   block = caml_alloc_custom(&madfile_ops, sizeof(madfile_t*), 0, 1);
   Madfile_val(block) = mf;
@@ -325,6 +330,8 @@ static void mf_fill_buffer(madfile_t *mf)
   CAMLparam0();
   CAMLlocal1(data);
 
+  if (mf->eof) return;
+
   /* The input bucket must be filled if it becomes empty
   */
   if (mf->stream.buffer == NULL || mf->stream.error == MAD_ERROR_BUFLEN)
@@ -346,22 +353,22 @@ static void mf_fill_buffer(madfile_t *mf)
      * account before refilling the buffer. This means that
      * the input buffer must be large enough to hold a whole
      * frame at the highest observable bit-rate (currently 448
-     * kb/s). XXX=XXX Is 2016 bytes the size of the largest
-     * frame? (448000*(1152/32000))/8
-     */
-    if (mf->stream.next_frame)
-    {
-      remaining = mf->stream.bufend - mf->stream.next_frame;
-      memmove(mf->buf, mf->stream.next_frame, remaining);
-      read_start = mf->buf + remaining;
-      read_size = BUFFER_SIZE - remaining;
-    }
-    else
-    {
-      read_size = BUFFER_SIZE;
-      read_start = mf->buf;
+     * kb/s). */
+    if (mf->stream.error != MAD_ERROR_BUFLEN) {
       remaining = 0;
+    } else if (mf->stream.next_frame) {
+      remaining = mf->stream.bufend - mf->stream.next_frame;
+    } else if ((mf->stream.bufend - mf->stream.buffer) < BUFFER_SIZE) {
+      remaining = mf->stream.bufend - mf->stream.buffer;
+    } else {
+      remaining = BUFFER_SIZE - FRAME_SIZE;
     }
+
+    if (remaining)
+      memmove(mf->buf, mf->stream.bufend-remaining, remaining);
+
+    read_start = mf->buf + remaining;
+    read_size = READ_SIZE - remaining;
 
     /* Fill-in the buffer. If an error occurs print a message
      * and leave the decoding loop. If the end of stream is
@@ -376,7 +383,7 @@ static void mf_fill_buffer(madfile_t *mf)
         memcpy(read_start, String_val(Field(data, 0)), read_size);
       else
         if (read_size==0)
-          caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
+          mf->eof = 1;
         else
           caml_raise_with_arg(*caml_named_value("mad_exn_read_error"),
               caml_copy_string("reading callback error"));
@@ -391,11 +398,7 @@ static void mf_fill_buffer(madfile_t *mf)
           /* Read error on bitstream. */
           caml_raise_with_arg(*caml_named_value("mad_exn_read_error"), caml_copy_string((char*)strerror(errno)));
         }
-        if(feof(mf->fd))
-        {
-          /* End of input stream. */
-          caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
-        }
+        if(feof(mf->fd)) mf->eof = 1;
       }
     }
 
@@ -423,12 +426,15 @@ static void mf_fill_buffer(madfile_t *mf)
      *    the end of the current frame in order to decode the
      *    frame."
      */
-    /* TODO: pad with MAD_BUFFER_GUARD zero bytes */
+    if (mf->eof) {
+      read_size += MAD_BUFFER_GUARD;
+      memset(mf->buf+read_size+remaining,0,MAD_BUFFER_GUARD);
+    }
 
     /* Pipe the new buffer content to libmad's stream decoder
      * facility.
      */
-    mad_stream_buffer(&mf->stream, mf->buf, read_size + remaining);
+    mad_stream_buffer(&mf->stream, mf->buf, read_size+remaining);
     mf->stream.error = 0;
   }
 
@@ -471,13 +477,17 @@ static int mf_decode(madfile_t *mf, int synth)
    * skip the faulty part and re-sync to the next frame.
    */
   dec = mad_frame_decode(&mf->frame, &mf->stream);
+
   if (dec) {
+    caml_leave_blocking_section();
+
     if (MAD_RECOVERABLE(mf->stream.error)
         || mf->stream.error == MAD_ERROR_BUFLEN) {
-      caml_leave_blocking_section();
+
+      if (mf->eof) caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
+
       return 1;
     } else {
-      caml_leave_blocking_section();
       caml_raise_with_arg(*caml_named_value("mad_exn_mad_error"), caml_copy_string(mad_stream_errorstr(&mf->stream)));
     }
   }
@@ -579,9 +589,15 @@ CAMLprim value ocaml_mad_skip_frame(value madf)
 {
   CAMLparam1(madf);
   madfile_t *mf = Madfile_val(madf);
+  int err;
 
-  do { mf_fill_buffer(mf); }
-    while (mf_decode(mf,0) == 1);
+  do {
+    mf_fill_buffer(mf);
+    err = mf_decode(mf,1);
+  } while (!mf->eof && err == 1);
+
+  if (err == 1)
+    caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
 
   CAMLreturn(Val_unit);
 }

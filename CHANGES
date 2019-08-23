@@ -1,6 +1,7 @@
-0.4.7 ()
+0.4.7 (unreleased)
 =====
 * Use conversion functions provided by OCaml for filename.
+* Cleanup decoding logic around EOF.
 
 0.4.6 (17-09-2018)
 =====
