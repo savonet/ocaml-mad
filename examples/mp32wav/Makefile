@@ -2,7 +2,7 @@ OCAML_LIB_MAD = ../../src
 
 SOURCES = mp32wav.ml
 RESULT = mp32wav
-LIBS = unix mad
+LIBS = unix bigarray mad
 INCDIRS = $(OCAML_LIB_MAD)
 OCAMLOPT = ocamlfind ocamlopt
 
