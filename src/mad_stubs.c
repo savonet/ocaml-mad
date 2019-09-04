@@ -24,10 +24,9 @@
  * @author Samuel Mimram, David Baelde
  */
 
-/* $Id$ */
-
 #define CAML_INTERNALS
 #include <caml/alloc.h>
+#include <caml/bigarray.h>
 #include <caml/callback.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -38,6 +37,7 @@
 #include <caml/osdeps.h>
 #endif
 #include <caml/signals.h>
+#include <caml/threads.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -581,6 +581,34 @@ CAMLprim value ocaml_mad_decode_frame_float(value madf)
   for (c = 0; c < chans; c++)
     for (i = 0; i < mf->synth.pcm.length; i++)
       Store_double_field(Field(ret, c), i, mad_f_todouble(mf->synth.pcm.samples[c][i]));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_mad_decode_frame_float_ba(value madf)
+{
+  CAMLparam1(madf);
+  CAMLlocal1(ret);
+  madfile_t *mf = Madfile_val(madf);
+  float *data;
+  int chans;
+  int i, c;
+
+  do { mf_fill_buffer(mf); }
+    while (mf_decode(mf,1) == 1);
+
+  chans = MAD_NCHANNELS(&mf->frame.header);
+  ret = caml_alloc_tuple(chans);
+
+  for (c = 0; c < chans; c++)
+    {
+      caml_release_runtime_system();
+      data = malloc(mf->synth.pcm.length*sizeof(float));
+      for (i = 0; i < mf->synth.pcm.length; i++)
+        data[i] = mad_f_todouble(mf->synth.pcm.samples[c][i]);
+      caml_acquire_runtime_system();
+      Store_field(ret, c, caml_ba_alloc_dims(CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, data, mf->synth.pcm.length));
+    }
 
   CAMLreturn(ret);
 }

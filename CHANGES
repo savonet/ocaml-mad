@@ -2,6 +2,7 @@
 =====
 * Use conversion functions provided by OCaml for filename.
 * Cleanup decoding logic around EOF.
+* Add decode_frame_float_ba.
 
 0.4.6 (17-09-2018)
 =====
