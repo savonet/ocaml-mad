@@ -78,6 +78,9 @@ type frame_format = {
     private_bit:         bool
   }
 
+(** Type for abstract reader. *)
+type read = bytes -> int -> int -> int
+
 (**
   * Open an mp3 file.
   *
@@ -90,7 +93,7 @@ val openfile : string -> mad_file
   * function which returns [n] bytes of data or less, the second component of
   * the result being the number of bytes to read in the fist component.
   *)
-val openstream : (int -> (string * int)) -> mad_file
+val openstream : read -> mad_file
 
 (**
   * Skip ID3 tags that may be present at 
@@ -102,7 +105,7 @@ val openstream : (int -> (string * int)) -> mad_file
   * position on the encoded data, and [tell] a callback
   * to fetch the current position. [read] is the reading
   * callback. *)
-val skip_id3tags : read:(int -> (string * int)) -> seek:(int -> int) -> tell:(unit -> int) -> unit
+val skip_id3tags : read:read -> seek:(int -> int) -> tell:(unit -> int) -> unit
 
 (**
   * Close an mp3 file previously opened with [openfile].

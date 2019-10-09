@@ -67,6 +67,7 @@ struct madfile__t
   value read_func;
   unsigned char buf[BUFFER_SIZE];
   int eof;
+  value data;
 };
 
 typedef struct madfile__t madfile_t;
@@ -119,6 +120,8 @@ static void finalize_madfile(value madf)
   madfile_t *mf = Madfile_val(madf);
   if (mf->read_func)
     caml_remove_generational_global_root(&mf->read_func);
+  if (mf->data)
+    caml_remove_generational_global_root(&mf->data);
   mad_synth_finish(&mf->synth);
   mad_frame_finish(&mf->frame);
   mad_stream_finish(&mf->stream);
@@ -146,6 +149,7 @@ static inline madfile_t* create_mf()
   mad_timer_reset(&mf->timer);
   mf->read_func = (value)NULL;
   mf->eof = 0;
+  mf->data = (value)NULL;
 
   return(mf);
 }
@@ -238,6 +242,8 @@ CAMLprim value ocaml_mad_openstream(value read_func)
   mf = create_mf();
   mf->read_func = read_func;
   caml_register_generational_global_root(&mf->read_func);
+  mf->data = caml_alloc_string(BUFFER_SIZE);
+  caml_register_generational_global_root(&mf->data);
   mf->fd = 0;
   memset(mf->buf,0,BUFFER_SIZE);
 
@@ -259,12 +265,12 @@ CAMLprim value ocaml_mad_close(value madf)
 CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
 {
   CAMLparam3(read,seek,tell);
-  CAMLlocal2(ret,s);
+  CAMLlocal3(ret,buf,s);
   /* These values are used to
    * store integers. Therefore, they do
    * not need to be protected. */
   value initial_position;
-  value bytes;
+  int readlen;
 
   /* Get initial position. */
   initial_position = Int_val(caml_callback(tell,Val_unit));
@@ -276,34 +282,69 @@ CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
   /* Here we assume that such small read length 
    * will always have either 0 (end of stream)
    * or the right amount of data... */
-  ret = caml_callback(read,Val_int(3)); 
-  s = Field(ret,0); 
-  bytes = Field(ret,1); 
-  if (Int_val(bytes) == 0) 
+  buf = caml_alloc_string(4);
+  caml_register_generational_global_root(&buf);
+
+  ret = caml_callback3_exn(read,buf,Val_int(0),Val_int(3));
+
+  if (Is_exception_result(ret)) {
+    ret = Extract_exception(ret);
+    caml_remove_generational_global_root(&buf);
+    caml_raise(ret);
+  }
+
+  readlen = Int_val(ret);
+
+  if (readlen == 0) {
+    caml_remove_generational_global_root(&buf); 
     caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
-  char *id3_header = String_val(s);
+  }
+
+  char *id3_header = String_val(buf);
   /* Check for ID3 tag magic */
   if ((id3_header[0] == 0x49) &
       (id3_header[1] == 0x44) &
       (id3_header[2] == 0x33))
   { /* Read version and flags */
-    ret = caml_callback(read,Val_int(3));
-    s = Field(ret,0);
-    bytes = Field(ret,1);
-    if (Int_val(bytes) == 0)
+    ret = caml_callback3_exn(read,buf,Val_int(0),Val_int(3)); 
+
+    if (Is_exception_result(ret)) {
+      ret = Extract_exception(ret);
+      caml_remove_generational_global_root(&buf);
+      caml_raise(ret);
+    }
+
+    readlen = Int_val(ret);
+
+    if (readlen == 0) {
+      caml_remove_generational_global_root(&buf);
       caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
-    id3_header = String_val(s);
+    }
+
+    id3_header = String_val(buf);
     /* Check for footer flag */
     if (id3_header[2] & 0x10)
       // 0b00010000 doesn't seem to work will all compilers..
       footer_len = 10;
     /* Get synchsafe len of ID3 tag */
-    ret = caml_callback(read,Val_int(sizeof(uint32_t))); 
-    s = Field(ret,0); 
-    bytes = Field(ret,1); 
-    if (Int_val(bytes) == 0) 
+    ret = caml_callback3_exn(read,buf,Val_int(0),Val_int(3));
+
+    if (Is_exception_result(ret)) {
+      ret = Extract_exception(ret);
+      caml_remove_generational_global_root(&buf);
+      caml_raise(ret);
+    }
+
+    caml_remove_generational_global_root(&buf);
+
+    readlen = Int_val(ret);
+
+    if (readlen == 0) {
+      caml_remove_generational_global_root(&buf); 
       caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
-    id3_len = (uint32_t *)String_val(s);
+    }
+
+    id3_len = (uint32_t *)String_val(buf);
     int position = Int_val(caml_callback(tell,Val_unit));
     caml_callback(seek,Val_int(position+unsynchsafe(ntohl(*id3_len))+footer_len));
   } else
@@ -328,7 +369,6 @@ CAMLprim value ocaml_mad_get_current_position(value madf)
 static void mf_fill_buffer(madfile_t *mf)
 {
   CAMLparam0();
-  CAMLlocal1(data);
 
   if (mf->eof) return;
 
@@ -377,10 +417,9 @@ static void mf_fill_buffer(madfile_t *mf)
      */
     if (mf->read_func)
     {
-      data = caml_callback(mf->read_func, Val_int(read_size));
-      read_size = Int_val(Field(data, 1));
+      read_size = Int_val(caml_callback3(mf->read_func, mf->data, Val_int(0), Val_int(read_size)));
       if (read_size>0)
-        memcpy(read_start, String_val(Field(data, 0)), read_size);
+        memcpy(read_start, String_val(mf->data), read_size);
       else
         if (read_size==0)
           mf->eof = 1;
