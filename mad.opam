@@ -28,6 +28,9 @@ depexts: [
   ["libmad"] {os-distribution = "nixos"}
   ["mad"] {os = "macos" & os-distribution = "homebrew"}
 ]
+conflicts: [
+  "liquidsoap" {< "1.5.0"}
+]
 bug-reports: "https://github.com/savonet/ocaml-mad/issues"
 dev-repo: "git+https://github.com/savonet/ocaml-mad.git"
 synopsis:
