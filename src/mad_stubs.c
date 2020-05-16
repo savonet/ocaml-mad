@@ -39,6 +39,10 @@
 #include <caml/signals.h>
 #include <caml/threads.h>
 
+#ifndef Bytes_val
+  #define Bytes_val String_val
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -283,64 +287,40 @@ CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
    * will always have either 0 (end of stream)
    * or the right amount of data... */
   buf = caml_alloc_string(4);
-  caml_register_generational_global_root(&buf);
 
-  ret = caml_callback3_exn(read,buf,Val_int(0),Val_int(3));
-
-  if (Is_exception_result(ret)) {
-    ret = Extract_exception(ret);
-    caml_remove_generational_global_root(&buf);
-    caml_raise(ret);
-  }
+  ret = caml_callback3(read,buf,Val_int(0),Val_int(3));
 
   readlen = Int_val(ret);
 
   if (readlen == 0) {
-    caml_remove_generational_global_root(&buf); 
     caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
   }
 
-  char *id3_header = String_val(buf);
+  const char *id3_header = (const char *)String_val(buf);
   /* Check for ID3 tag magic */
   if ((id3_header[0] == 0x49) &
       (id3_header[1] == 0x44) &
       (id3_header[2] == 0x33))
   { /* Read version and flags */
-    ret = caml_callback3_exn(read,buf,Val_int(0),Val_int(3)); 
-
-    if (Is_exception_result(ret)) {
-      ret = Extract_exception(ret);
-      caml_remove_generational_global_root(&buf);
-      caml_raise(ret);
-    }
+    ret = caml_callback3(read,buf,Val_int(0),Val_int(3)); 
 
     readlen = Int_val(ret);
 
     if (readlen == 0) {
-      caml_remove_generational_global_root(&buf);
       caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
     }
 
-    id3_header = String_val(buf);
+    id3_header = (const char *)String_val(buf);
     /* Check for footer flag */
     if (id3_header[2] & 0x10)
       // 0b00010000 doesn't seem to work will all compilers..
       footer_len = 10;
     /* Get synchsafe len of ID3 tag */
-    ret = caml_callback3_exn(read,buf,Val_int(0),Val_int(3));
-
-    if (Is_exception_result(ret)) {
-      ret = Extract_exception(ret);
-      caml_remove_generational_global_root(&buf);
-      caml_raise(ret);
-    }
-
-    caml_remove_generational_global_root(&buf);
+    ret = caml_callback3(read,buf,Val_int(0),Val_int(3));
 
     readlen = Int_val(ret);
 
     if (readlen == 0) {
-      caml_remove_generational_global_root(&buf); 
       caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
     }
 
@@ -572,7 +552,7 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
    * full.
    */
   ret = caml_alloc_string(mf->synth.pcm.length * chans * 2);
-  output_buf = String_val(ret);
+  output_buf = (char *)Bytes_val(ret);
 
   for(i = 0; i < mf->synth.pcm.length; i++)
   {
