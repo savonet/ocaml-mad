@@ -1,5 +1,6 @@
 0.5.0 (unreleased)
 =====
+* Switch to dune
 * Switch to read callbacks with bytes.
 * Use conversion functions provided by OCaml for filename.
 * Cleanup decoding logic around EOF.

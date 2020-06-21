@@ -1,6 +1,0 @@
-name="Mad"
-version="@VERSION@"
-description="Ocaml bindings to libmad"
-requires="unix"
-archive(byte) = "mad.cma"
-archive(native) = "mad.cmxa"

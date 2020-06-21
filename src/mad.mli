@@ -48,35 +48,22 @@ exception Closefile_error of string
 (** An mp3 file opened for decoding. *)
 type mad_file
 
-type mpeg_layer =
-  | Layer_I
-  | Layer_II
-  | Layer_III
-
-type emphasis =
-  | None
-  | MS_50_15
-  | CCITT_J_17
-  | Reserved
-
-type channel_mode =
-  | Single_channel
-  | Dual_channel
-  | Joint_stereo
-  | Stereo
+type mpeg_layer = Layer_I | Layer_II | Layer_III
+type emphasis = None | MS_50_15 | CCITT_J_17 | Reserved
+type channel_mode = Single_channel | Dual_channel | Joint_stereo | Stereo
 
 type frame_format = {
-    layer:               mpeg_layer;
-    mode:                channel_mode;
-    emphasis:            emphasis;
-    bitrate:             int;
-    samplerate:          int;
-    channels:            int;
-    samples_per_channel: int;
-    original:            bool;
-    copyright:           bool;
-    private_bit:         bool
-  }
+  layer : mpeg_layer;
+  mode : channel_mode;
+  emphasis : emphasis;
+  bitrate : int;
+  samplerate : int;
+  channels : int;
+  samples_per_channel : int;
+  original : bool;
+  copyright : bool;
+  private_bit : bool;
+}
 
 (** Type for abstract reader. *)
 type read = bytes -> int -> int -> int
@@ -120,7 +107,13 @@ val close : mad_file -> unit
   *)
 val get_current_position : mad_file -> int
 
-type time_unit = Hours | Minutes | Seconds | Deciseconds | Centiseconds | Milliseconds
+type time_unit =
+  | Hours
+  | Minutes
+  | Seconds
+  | Deciseconds
+  | Centiseconds
+  | Milliseconds
 
 (**
   * Get the current time position (in the given unit) of the decoder.
@@ -136,7 +129,9 @@ val decode_frame : mad_file -> string
 (** Decode an mp3 frame. *)
 val decode_frame_float : mad_file -> float array array
 
-val decode_frame_float_ba : mad_file -> (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array
+val decode_frame_float_ba :
+  mad_file ->
+  (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array
 
 (** Skip one frame. The current time/position is
   * updated but the frame is not decoded. *)

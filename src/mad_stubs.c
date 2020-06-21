@@ -40,29 +40,29 @@
 #include <caml/threads.h>
 
 #ifndef Bytes_val
-  #define Bytes_val String_val
+#define Bytes_val String_val
 #endif
 
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
 #include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
 #ifdef __MINGW32__
 #include <winsock.h>
 #else
 #include <netinet/in.h>
 #endif
-#include <stdint.h>
 #include <mad.h>
+#include <stdint.h>
 
 // The theoretical maximum frame size is 2881 bytes,
-// MPEG 2.5 Layer II, 8000 Hz @ 160 kbps, with a padding slot plus 8 byte MAD_BUFFER_GUARD.
+// MPEG 2.5 Layer II, 8000 Hz @ 160 kbps, with a padding slot plus 8 byte
+// MAD_BUFFER_GUARD.
 #define READ_SIZE 4096
-#define BUFFER_SIZE READ_SIZE+MAD_BUFFER_GUARD
+#define BUFFER_SIZE READ_SIZE + MAD_BUFFER_GUARD
 #define FRAME_SIZE 2881
 
-struct madfile__t
-{
+struct madfile__t {
   struct mad_stream stream;
   struct mad_frame frame;
   struct mad_synth synth;
@@ -82,8 +82,7 @@ typedef struct madfile__t madfile_t;
  *
  * Shamelessly taken from the MPlayer source code.
  */
-static short short_of_madfixed(mad_fixed_t sample)
-{
+static short short_of_madfixed(mad_fixed_t sample) {
   /* A fixed point number is formed of the following bit pattern:
    *
    * SWWWFFFFFFFFFFFFFFFFFFFFFFFFFFFF
@@ -117,10 +116,9 @@ static short short_of_madfixed(mad_fixed_t sample)
   return (short)sample;
 }
 
-#define Madfile_val(v) (*((madfile_t**)Data_custom_val(v)))
+#define Madfile_val(v) (*((madfile_t **)Data_custom_val(v)))
 
-static void finalize_madfile(value madf)
-{
+static void finalize_madfile(value madf) {
   madfile_t *mf = Madfile_val(madf);
   if (mf->read_func)
     caml_remove_generational_global_root(&mf->read_func);
@@ -132,18 +130,11 @@ static void finalize_madfile(value madf)
   free(mf);
 }
 
-static struct custom_operations madfile_ops =
-{
-  "ocaml_mad_madfile",
-  finalize_madfile,
-  custom_compare_default,
-  custom_hash_default,
-  custom_serialize_default,
-  custom_deserialize_default
-};
+static struct custom_operations madfile_ops = {
+    "ocaml_mad_madfile", finalize_madfile,         custom_compare_default,
+    custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
-static inline madfile_t* create_mf()
-{
+static inline madfile_t *create_mf() {
   madfile_t *mf;
 
   mf = malloc(sizeof(madfile_t));
@@ -155,27 +146,26 @@ static inline madfile_t* create_mf()
   mf->eof = 0;
   mf->data = (value)NULL;
 
-  return(mf);
+  return (mf);
 }
 
 /* Returns a "normal" 4-bytes integer from
  * a synchsafe integer */
 int unsynchsafe(unsigned int in) {
-        int out=0, i;
-        unsigned int mask=0x7F000000;
- 
-        for(i=0; i<4; ++i) {
-                out >>= 1;
-                out |= in & mask;
-                mask >>= 8;
-        }
- 
-        return out;
+  int out = 0, i;
+  unsigned int mask = 0x7F000000;
+
+  for (i = 0; i < 4; ++i) {
+    out >>= 1;
+    out |= in & mask;
+    mask >>= 8;
+  }
+
+  return out;
 }
 
 // TODO: unify file/callback API?
-CAMLprim value ocaml_mad_openfile(value file)
-{
+CAMLprim value ocaml_mad_openfile(value file) {
   CAMLparam1(file);
   CAMLlocal1(block);
   madfile_t *mf;
@@ -203,20 +193,18 @@ CAMLprim value ocaml_mad_openfile(value file)
   char id3_header[3];
   uint32_t id3_len;
   int footer_len = 0;
-  fread(&id3_header,sizeof(char),3,fd);
+  fread(&id3_header, sizeof(char), 3, fd);
   /* Check for ID3 tag magic */
-  if ((id3_header[0] == 0x49) &
-      (id3_header[1] == 0x44) &
-      (id3_header[2] == 0x33))
-  { /* Read version and flags */
-    fread(&id3_header,sizeof(char),3,fd);
+  if ((id3_header[0] == 0x49) & (id3_header[1] == 0x44) &
+      (id3_header[2] == 0x33)) { /* Read version and flags */
+    fread(&id3_header, sizeof(char), 3, fd);
     /* Check for footer flag */
     if (id3_header[2] & 0x10)
       // 0b00010000 doesn't seem to work will all compilers..
       footer_len = 10;
     /* Get synchsafe len of ID3 tag */
-    fread(&id3_len,sizeof(char),4,fd);
-    fseek(fd,unsynchsafe(ntohl(id3_len))+footer_len,SEEK_CUR);
+    fread(&id3_len, sizeof(char), 4, fd);
+    fseek(fd, unsynchsafe(ntohl(id3_len)) + footer_len, SEEK_CUR);
   } else
     rewind(fd);
 
@@ -225,20 +213,19 @@ CAMLprim value ocaml_mad_openfile(value file)
   if (!mf->fd)
     caml_raise_with_arg(*caml_named_value("mad_exn_openfile_error"),
                         caml_copy_string(strerror(errno)));
-  memset(mf->buf,0,BUFFER_SIZE);
+  memset(mf->buf, 0, BUFFER_SIZE);
 
   // The amount of data "secretly" owned by the madfile_t may be underestimated
   // here since I only take into account mf->buf, while it may be possible
   // that the mad_*_init functions also allocate stuff.
-  block = caml_alloc_custom(&madfile_ops, sizeof(madfile_t*),
-                            BUFFER_SIZE, 1000000);
+  block = caml_alloc_custom(&madfile_ops, sizeof(madfile_t *), BUFFER_SIZE,
+                            1000000);
   Madfile_val(block) = mf;
 
   CAMLreturn(block);
 }
 
-CAMLprim value ocaml_mad_openstream(value read_func)
-{
+CAMLprim value ocaml_mad_openstream(value read_func) {
   CAMLparam1(read_func);
   CAMLlocal1(block);
   madfile_t *mf;
@@ -249,27 +236,26 @@ CAMLprim value ocaml_mad_openstream(value read_func)
   mf->data = caml_alloc_string(BUFFER_SIZE);
   caml_register_generational_global_root(&mf->data);
   mf->fd = 0;
-  memset(mf->buf,0,BUFFER_SIZE);
+  memset(mf->buf, 0, BUFFER_SIZE);
 
-  block = caml_alloc_custom(&madfile_ops, sizeof(madfile_t*), 0, 1);
+  block = caml_alloc_custom(&madfile_ops, sizeof(madfile_t *), 0, 1);
   Madfile_val(block) = mf;
 
   CAMLreturn(block);
 }
 
-CAMLprim value ocaml_mad_close(value madf)
-{
+CAMLprim value ocaml_mad_close(value madf) {
   CAMLparam1(madf);
   madfile_t *mf = Madfile_val(madf);
   if (!mf->read_func && fclose(mf->fd) != 0)
-    caml_raise_with_arg(*caml_named_value("mad_exn_closefile_error"), caml_copy_string(strerror(errno)));
+    caml_raise_with_arg(*caml_named_value("mad_exn_closefile_error"),
+                        caml_copy_string(strerror(errno)));
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
-{
-  CAMLparam3(read,seek,tell);
-  CAMLlocal3(ret,buf,s);
+CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell) {
+  CAMLparam3(read, seek, tell);
+  CAMLlocal3(ret, buf, s);
   /* These values are used to
    * store integers. Therefore, they do
    * not need to be protected. */
@@ -277,18 +263,18 @@ CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
   int readlen;
 
   /* Get initial position. */
-  initial_position = Int_val(caml_callback(tell,Val_unit));
+  initial_position = Int_val(caml_callback(tell, Val_unit));
 
   /* Remove ID3 tag
    * Ref: http://www.id3.org/id3v2.4.0-structure */
   uint32_t *id3_len;
   int footer_len = 0;
-  /* Here we assume that such small read length 
+  /* Here we assume that such small read length
    * will always have either 0 (end of stream)
    * or the right amount of data... */
   buf = caml_alloc_string(4);
 
-  ret = caml_callback3(read,buf,Val_int(0),Val_int(3));
+  ret = caml_callback3(read, buf, Val_int(0), Val_int(3));
 
   readlen = Int_val(ret);
 
@@ -298,11 +284,9 @@ CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
 
   const char *id3_header = (const char *)String_val(buf);
   /* Check for ID3 tag magic */
-  if ((id3_header[0] == 0x49) &
-      (id3_header[1] == 0x44) &
-      (id3_header[2] == 0x33))
-  { /* Read version and flags */
-    ret = caml_callback3(read,buf,Val_int(0),Val_int(3)); 
+  if ((id3_header[0] == 0x49) & (id3_header[1] == 0x44) &
+      (id3_header[2] == 0x33)) { /* Read version and flags */
+    ret = caml_callback3(read, buf, Val_int(0), Val_int(3));
 
     readlen = Int_val(ret);
 
@@ -316,7 +300,7 @@ CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
       // 0b00010000 doesn't seem to work will all compilers..
       footer_len = 10;
     /* Get synchsafe len of ID3 tag */
-    ret = caml_callback3(read,buf,Val_int(0),Val_int(3));
+    ret = caml_callback3(read, buf, Val_int(0), Val_int(3));
 
     readlen = Int_val(ret);
 
@@ -325,20 +309,21 @@ CAMLprim value ocaml_mad_skip_id3tag(value read, value seek, value tell)
     }
 
     id3_len = (uint32_t *)String_val(buf);
-    int position = Int_val(caml_callback(tell,Val_unit));
-    caml_callback(seek,Val_int(position+unsynchsafe(ntohl(*id3_len))+footer_len));
+    int position = Int_val(caml_callback(tell, Val_unit));
+    caml_callback(
+        seek, Val_int(position + unsynchsafe(ntohl(*id3_len)) + footer_len));
   } else
-    caml_callback(seek,initial_position);
+    caml_callback(seek, initial_position);
 
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_mad_get_current_position(value madf)
-{
+CAMLprim value ocaml_mad_get_current_position(value madf) {
   CAMLparam1(madf);
   madfile_t *mf = Madfile_val(madf);
   if (mf->read_func)
-    caml_raise_with_arg(*caml_named_value("mad_exn_closefile_error"), caml_copy_string("Not created with openfile."));
+    caml_raise_with_arg(*caml_named_value("mad_exn_closefile_error"),
+                        caml_copy_string("Not created with openfile."));
   int pos = (int)ftell(mf->fd);
   CAMLreturn(Val_int(pos));
 }
@@ -346,16 +331,15 @@ CAMLprim value ocaml_mad_get_current_position(value madf)
 /*
  * Shamelessly inspired of the Madlld source code.
  */
-static void mf_fill_buffer(madfile_t *mf)
-{
+static void mf_fill_buffer(madfile_t *mf) {
   CAMLparam0();
 
-  if (mf->eof) return;
+  if (mf->eof)
+    return;
 
   /* The input bucket must be filled if it becomes empty
-  */
-  if (mf->stream.buffer == NULL || mf->stream.error == MAD_ERROR_BUFLEN)
-  {
+   */
+  if (mf->stream.buffer == NULL || mf->stream.error == MAD_ERROR_BUFLEN) {
     size_t read_size, remaining;
     unsigned char *read_start;
 
@@ -385,7 +369,7 @@ static void mf_fill_buffer(madfile_t *mf)
     }
 
     if (remaining)
-      memmove(mf->buf, mf->stream.bufend-remaining, remaining);
+      memmove(mf->buf, mf->stream.bufend - remaining, remaining);
 
     read_start = mf->buf + remaining;
     read_size = READ_SIZE - remaining;
@@ -395,29 +379,26 @@ static void mf_fill_buffer(madfile_t *mf)
      * reached we also leave the loop but the return status is
      * left untouched.
      */
-    if (mf->read_func)
-    {
-      read_size = Int_val(caml_callback3(mf->read_func, mf->data, Val_int(0), Val_int(read_size)));
-      if (read_size>0)
+    if (mf->read_func) {
+      read_size = Int_val(caml_callback3(mf->read_func, mf->data, Val_int(0),
+                                         Val_int(read_size)));
+      if (read_size > 0)
         memcpy(read_start, String_val(mf->data), read_size);
+      else if (read_size == 0)
+        mf->eof = 1;
       else
-        if (read_size==0)
-          mf->eof = 1;
-        else
-          caml_raise_with_arg(*caml_named_value("mad_exn_read_error"),
-              caml_copy_string("reading callback error"));
-    }
-    else
-    {
+        caml_raise_with_arg(*caml_named_value("mad_exn_read_error"),
+                            caml_copy_string("reading callback error"));
+    } else {
       read_size = fread(read_start, 1, read_size, mf->fd);
-      if (read_size <= 0)
-      {
-        if(ferror(mf->fd))
-        {
+      if (read_size <= 0) {
+        if (ferror(mf->fd)) {
           /* Read error on bitstream. */
-          caml_raise_with_arg(*caml_named_value("mad_exn_read_error"), caml_copy_string((char*)strerror(errno)));
+          caml_raise_with_arg(*caml_named_value("mad_exn_read_error"),
+                              caml_copy_string((char *)strerror(errno)));
         }
-        if(feof(mf->fd)) mf->eof = 1;
+        if (feof(mf->fd))
+          mf->eof = 1;
       }
     }
 
@@ -447,13 +428,13 @@ static void mf_fill_buffer(madfile_t *mf)
      */
     if (mf->eof) {
       read_size += MAD_BUFFER_GUARD;
-      memset(mf->buf+read_size+remaining,0,MAD_BUFFER_GUARD);
+      memset(mf->buf + read_size + remaining, 0, MAD_BUFFER_GUARD);
     }
 
     /* Pipe the new buffer content to libmad's stream decoder
      * facility.
      */
-    mad_stream_buffer(&mf->stream, mf->buf, read_size+remaining);
+    mad_stream_buffer(&mf->stream, mf->buf, read_size + remaining);
     mf->stream.error = 0;
   }
 
@@ -461,8 +442,7 @@ static void mf_fill_buffer(madfile_t *mf)
 }
 
 /* Returns 1 if a recoverable error occured, 0 else. */
-static int mf_decode(madfile_t *mf, int synth)
-{
+static int mf_decode(madfile_t *mf, int synth) {
   int dec;
 
   caml_enter_blocking_section();
@@ -500,14 +480,16 @@ static int mf_decode(madfile_t *mf, int synth)
   if (dec) {
     caml_leave_blocking_section();
 
-    if (MAD_RECOVERABLE(mf->stream.error)
-        || mf->stream.error == MAD_ERROR_BUFLEN) {
+    if (MAD_RECOVERABLE(mf->stream.error) ||
+        mf->stream.error == MAD_ERROR_BUFLEN) {
 
-      if (mf->eof) caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
+      if (mf->eof)
+        caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
 
       return 1;
     } else {
-      caml_raise_with_arg(*caml_named_value("mad_exn_mad_error"), caml_copy_string(mad_stream_errorstr(&mf->stream)));
+      caml_raise_with_arg(*caml_named_value("mad_exn_mad_error"),
+                          caml_copy_string(mad_stream_errorstr(&mf->stream)));
     }
   }
 
@@ -532,8 +514,7 @@ static int mf_decode(madfile_t *mf, int synth)
   return 0;
 }
 
-CAMLprim value ocaml_mad_decode_frame(value madf)
-{
+CAMLprim value ocaml_mad_decode_frame(value madf) {
   CAMLparam1(madf);
   CAMLlocal1(ret);
   madfile_t *mf = Madfile_val(madf);
@@ -542,8 +523,9 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
   int i;
   int chans = MAD_NCHANNELS(&mf->frame.header);
 
-  do { mf_fill_buffer(mf); }
-    while (mf_decode(mf,1) == 1);
+  do {
+    mf_fill_buffer(mf);
+  } while (mf_decode(mf, 1) == 1);
 
   /* Synthesized samples must be converted from mad's fixed
    * point number to the consumer format. Here we use unsigned
@@ -554,8 +536,7 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
   ret = caml_alloc_string(mf->synth.pcm.length * chans * 2);
   output_buf = (char *)Bytes_val(ret);
 
-  for(i = 0; i < mf->synth.pcm.length; i++)
-  {
+  for (i = 0; i < mf->synth.pcm.length; i++) {
     unsigned short sample;
 
     /* Left channel */
@@ -568,44 +549,45 @@ CAMLprim value ocaml_mad_decode_frame(value madf)
      * the right output channel is the same as the left one
      * and we omit it here.
      */
-    if (chans > 1)
-    {
+    if (chans > 1) {
       sample = short_of_madfixed(mf->synth.pcm.samples[1][i]);
       *(output_buf + output_pos + 0) = sample & 0xff;
       *(output_buf + output_pos + 1) = sample >> 8;
-      output_pos += 2; 
+      output_pos += 2;
     }
   }
 
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_mad_decode_frame_float(value madf)
-{
+CAMLprim value ocaml_mad_decode_frame_float(value madf) {
   CAMLparam1(madf);
   CAMLlocal1(ret);
   madfile_t *mf = Madfile_val(madf);
   int chans;
   int i, c;
 
-  do { mf_fill_buffer(mf); }
-    while (mf_decode(mf,1) == 1);
+  do {
+    mf_fill_buffer(mf);
+  } while (mf_decode(mf, 1) == 1);
 
   chans = MAD_NCHANNELS(&mf->frame.header);
   ret = caml_alloc_tuple(chans);
 
   for (c = 0; c < chans; c++)
-    Store_field(ret, c, caml_alloc(mf->synth.pcm.length * Double_wosize, Double_array_tag));
+    Store_field(
+        ret, c,
+        caml_alloc(mf->synth.pcm.length * Double_wosize, Double_array_tag));
 
   for (c = 0; c < chans; c++)
     for (i = 0; i < mf->synth.pcm.length; i++)
-      Store_double_field(Field(ret, c), i, mad_f_todouble(mf->synth.pcm.samples[c][i]));
+      Store_double_field(Field(ret, c), i,
+                         mad_f_todouble(mf->synth.pcm.samples[c][i]));
 
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_mad_decode_frame_float_ba(value madf)
-{
+CAMLprim value ocaml_mad_decode_frame_float_ba(value madf) {
   CAMLparam1(madf);
   CAMLlocal1(ret);
   madfile_t *mf = Madfile_val(madf);
@@ -613,34 +595,35 @@ CAMLprim value ocaml_mad_decode_frame_float_ba(value madf)
   int chans;
   int i, c;
 
-  do { mf_fill_buffer(mf); }
-    while (mf_decode(mf,1) == 1);
+  do {
+    mf_fill_buffer(mf);
+  } while (mf_decode(mf, 1) == 1);
 
   chans = MAD_NCHANNELS(&mf->frame.header);
   ret = caml_alloc_tuple(chans);
 
-  for (c = 0; c < chans; c++)
-    {
-      caml_release_runtime_system();
-      data = malloc(mf->synth.pcm.length*sizeof(float));
-      for (i = 0; i < mf->synth.pcm.length; i++)
-        data[i] = mad_f_todouble(mf->synth.pcm.samples[c][i]);
-      caml_acquire_runtime_system();
-      Store_field(ret, c, caml_ba_alloc_dims(CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, data, mf->synth.pcm.length));
-    }
+  for (c = 0; c < chans; c++) {
+    caml_release_runtime_system();
+    data = malloc(mf->synth.pcm.length * sizeof(float));
+    for (i = 0; i < mf->synth.pcm.length; i++)
+      data[i] = mad_f_todouble(mf->synth.pcm.samples[c][i]);
+    caml_acquire_runtime_system();
+    Store_field(ret, c,
+                caml_ba_alloc_dims(CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, data,
+                                   mf->synth.pcm.length));
+  }
 
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_mad_skip_frame(value madf)
-{
+CAMLprim value ocaml_mad_skip_frame(value madf) {
   CAMLparam1(madf);
   madfile_t *mf = Madfile_val(madf);
   int err;
 
   do {
     mf_fill_buffer(mf);
-    err = mf_decode(mf,1);
+    err = mf_decode(mf, 1);
   } while (!mf->eof && err == 1);
 
   if (err == 1)
@@ -649,22 +632,21 @@ CAMLprim value ocaml_mad_skip_frame(value madf)
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_mad_time(value madf, value u)
-{
+CAMLprim value ocaml_mad_time(value madf, value u) {
   CAMLparam1(madf);
   madfile_t *mf = Madfile_val(madf);
 
-  CAMLreturn(Val_long(mad_timer_count(mf->timer,Int_val(u))));
+  CAMLreturn(Val_long(mad_timer_count(mf->timer, Int_val(u))));
 }
 
-CAMLprim value ocaml_mad_get_frame_format(value madf)
-{
+CAMLprim value ocaml_mad_get_frame_format(value madf) {
   CAMLparam1(madf);
   CAMLlocal1(ans);
   madfile_t *mf = Madfile_val(madf);
   int private = 0;
   if ((mf->frame.header.private_bits & MAD_PRIVATE_HEADER) > 0)
-    private = 1;
+  private
+  = 1;
   int copyright = 0;
   if ((mf->frame.header.flags & MAD_FLAG_COPYRIGHT) > 0)
     copyright = 1;
@@ -673,7 +655,8 @@ CAMLprim value ocaml_mad_get_frame_format(value madf)
     original = 1;
 
   ans = caml_alloc_tuple(10);
-  Store_field(ans, 0, Val_int(mf->frame.header.layer-1)); // Layers start at 1..
+  Store_field(ans, 0,
+              Val_int(mf->frame.header.layer - 1)); // Layers start at 1..
   Store_field(ans, 1, Val_int(mf->frame.header.mode));
   Store_field(ans, 2, Val_int(mf->frame.header.emphasis));
   Store_field(ans, 3, Val_long(mf->frame.header.bitrate));
