@@ -8,27 +8,39 @@ Homepage: https://github.com/savonet/ocaml-mad
 Copyright (c) 2003-2019 the Savonet Team.
 
 
-Dependencies
+Prerequisites:
+==============
+
+- ocaml
+
+- lame
+
+- findlib
+
+- dune
+
+Compilation:
 ============
 
-To build this library you need to have OCaml 3.07 and the libmad.
-
-
-Installation
-============
-
-To compile the program type:
-
 ```
-./configure
-make
+$ dune build
 ```
 
-(you can set specific build options with the configure script, see
-`./configure --help`) then, to install it, type as root:
+This should build both the native and the byte-code version of the
+extension library.
+
+Installation:
+=============
+
+Via `opam`:
 
 ```
-make install
+$ opam install mad
+```
+
+Via `dune` (for developers):
+```
+$ dune install
 ```
 
 License
