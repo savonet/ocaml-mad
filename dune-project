@@ -15,6 +15,4 @@
  (depends
   (dune (> 2.0))
   dune-configurator)
- (conflicts
-  (liquidsoap (< 1.5.0))) 
 )
