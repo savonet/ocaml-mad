@@ -76,31 +76,31 @@ let _ =
     usage;
   if !src = "" then (
     Printf.printf "%s\n" usage;
-    exit 1 );
+    exit 1);
 
   let synced = ref false in
   let msg_char = ref 0 in
   let bit_pos = ref 0 in
   let mf = Mad.openfile !src in
-  ( try
-      while true do
-        Mad.skip_frame mf;
-        begin
-          match !synced with
-          | false when is_sync mf -> synced := true
-          | false -> ()
-          | true ->
-              let incr, char = get_bits mf !msg_char in
-              msg_char := char;
-              if incr then bit_pos := !bit_pos + 2
-        end;
-        if !bit_pos > 7 then begin
-          Printf.printf "%C%!" (char_of_int !msg_char);
-          msg_char := 0;
-          bit_pos := 0;
-          synced := false
-        end
-      done;
-      assert false
-    with Mad.End_of_stream -> Mad.close mf );
+  (try
+     while true do
+       Mad.skip_frame mf;
+       begin
+         match !synced with
+         | false when is_sync mf -> synced := true
+         | false -> ()
+         | true ->
+             let incr, char = get_bits mf !msg_char in
+             msg_char := char;
+             if incr then bit_pos := !bit_pos + 2
+       end;
+       if !bit_pos > 7 then begin
+         Printf.printf "%C%!" (char_of_int !msg_char);
+         msg_char := 0;
+         bit_pos := 0;
+         synced := false
+       end
+     done;
+     assert false
+   with Mad.End_of_stream -> Mad.close mf);
   Printf.printf "\n"

@@ -1,5 +1,5 @@
-(lang dune 2.0)
-(version 0.5.0)
+(lang dune 2.8)
+(version 0.5.1)
 (name mad)
 (source (github savonet/ocaml-mad))
 (license GPL-2.0)
@@ -7,12 +7,13 @@
 (maintainers "The Savonet Team <savonet-users@lists.sourceforge.net>")
 
 (generate_opam_files true)
+(use_standard_c_and_cxx_flags false)
 
 (package
  (name mad)
  (synopsis "Mad decoding library")
  (description "Bindings for the mad library which provides functions for encoding wave audio files into mp3")
  (depends
-  (dune (> 2.0))
+  dune
   dune-configurator)
 )

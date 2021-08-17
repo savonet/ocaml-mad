@@ -621,13 +621,26 @@ CAMLprim value ocaml_mad_skip_frame(value madf) {
   madfile_t *mf = Madfile_val(madf);
   int err;
 
+  if (mf->eof)
+    caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
+
   do {
     mf_fill_buffer(mf);
-    err = mf_decode(mf, 1);
-  } while (!mf->eof && err == 1);
 
-  if (err == 1)
-    caml_raise_constant(*caml_named_value("mad_exn_end_of_stream"));
+    caml_enter_blocking_section();
+    err = mad_header_decode(&mf->frame.header, &mf->stream);
+    caml_leave_blocking_section();
+
+    if (err == 0) {
+      mad_timer_add(&mf->timer, mf->frame.header.duration);
+    } else {
+      if (!MAD_RECOVERABLE(mf->stream.error) &&
+          mf->stream.error != MAD_ERROR_BUFLEN) {
+        caml_raise_with_arg(*caml_named_value("mad_exn_mad_error"),
+                            caml_copy_string(mad_stream_errorstr(&mf->stream)));
+      }
+    }
+  } while (!mf->eof);
 
   CAMLreturn(Val_unit);
 }

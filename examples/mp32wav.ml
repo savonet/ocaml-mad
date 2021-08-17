@@ -61,14 +61,14 @@ let progress_bar =
     incr spin;
     if !spin > 4 then spin := 1;
     Printf.printf "%c%!"
-      ( if n = 100. then ' '
+      (if n = 100. then ' '
       else (
         match !spin with
           | 1 -> '|'
           | 2 -> '/'
           | 3 -> '-'
           | 4 -> '\\'
-          | _ -> failwith "this did not happen" ) )
+          | _ -> failwith "this did not happen"))
 
 let usage = "usage: mp32wav [options] source destination"
 
@@ -86,7 +86,7 @@ let _ =
     usage;
   if !src = "" || !dst = "" then (
     Printf.printf "%s\n" usage;
-    exit 1 );
+    exit 1);
 
   (* Using mad to decode the mp3. *)
   let tmpdst, oc =
@@ -97,21 +97,21 @@ let _ =
   let samplerate = ref 44100 in
   let tot = (Unix.stat !src).Unix.st_size in
   let mf = Mad.openfile !src in
-  ( try
-      while true do
-        let d = Mad.decode_frame mf in
-        if !is_first then begin
-          let sr, ch, _ = Mad.get_output_format mf in
-          samplerate := sr;
-          channels := ch;
-          is_first := false
-        end;
-        output_string oc d;
-        progress_bar "Decoding mp3:" (Mad.get_current_position mf) tot
-      done
-    with Mad.End_of_stream ->
-      close_out oc;
-      Mad.close mf );
+  (try
+     while true do
+       let d = Mad.decode_frame mf in
+       if !is_first then begin
+         let sr, ch, _ = Mad.get_output_format mf in
+         samplerate := sr;
+         channels := ch;
+         is_first := false
+       end;
+       output_string oc d;
+       progress_bar "Decoding mp3:" (Mad.get_current_position mf) tot
+     done
+   with Mad.End_of_stream ->
+     close_out oc;
+     Mad.close mf);
   Printf.printf "\n";
 
   (* Do the wav stuff. *)

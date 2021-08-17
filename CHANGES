@@ -1,3 +1,8 @@
+0.5.1 (unreleased)
+=====
+* Do not decode audio data when skipping frames
+  or computing file duration.
+
 0.5.0 (07-10-2020)
 =====
 * Switch to dune
