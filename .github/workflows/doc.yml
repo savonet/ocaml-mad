@@ -15,7 +15,7 @@ jobs:
       uses: avsm/setup-ocaml@v2
     - name: Pin locally
       run: opam pin -y add -n .
-    - name: Update packages and install locally
+    - name: Install locally
       run: opam install -y odoc mad
     - name: Build doc
       run: opam exec dune build @doc
