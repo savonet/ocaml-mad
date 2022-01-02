@@ -1,4 +1,4 @@
-0.5.1 (unreleased)
+0.5.1 (02-01-2022)
 =====
 * Do not decode audio data when skipping frames
   or computing file duration.
