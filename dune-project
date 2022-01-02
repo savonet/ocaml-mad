@@ -14,6 +14,8 @@
  (synopsis "Mad decoding library")
  (description "Bindings for the mad library which provides functions for encoding wave audio files into mp3")
  (depends
+  (conf-pkg-config :build)
+  (conf-mad :build)
   dune
   dune-configurator)
 )
