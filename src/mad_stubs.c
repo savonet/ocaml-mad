@@ -589,7 +589,7 @@ CAMLprim value ocaml_mad_decode_frame_float(value madf) {
 
 CAMLprim value ocaml_mad_decode_frame_float_ba(value madf) {
   CAMLparam1(madf);
-  CAMLlocal1(ret);
+  CAMLlocal2(ret, tmp);
   madfile_t *mf = Madfile_val(madf);
   float *data;
   int chans;
@@ -603,14 +603,14 @@ CAMLprim value ocaml_mad_decode_frame_float_ba(value madf) {
   ret = caml_alloc_tuple(chans);
 
   for (c = 0; c < chans; c++) {
+    tmp = caml_ba_alloc_dims(CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL,
+                             mf->synth.pcm.length);
+    data = Caml_ba_data_val(tmp);
     caml_release_runtime_system();
-    data = malloc(mf->synth.pcm.length * sizeof(float));
     for (i = 0; i < mf->synth.pcm.length; i++)
       data[i] = mad_f_todouble(mf->synth.pcm.samples[c][i]);
     caml_acquire_runtime_system();
-    Store_field(ret, c,
-                caml_ba_alloc_dims(CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, data,
-                                   mf->synth.pcm.length));
+    Store_field(ret, c, tmp);
   }
 
   CAMLreturn(ret);

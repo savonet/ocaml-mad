@@ -1,3 +1,8 @@
+0.5.2 (unreleased)
+=====
+* Let OCaml allocate bigarray's memory
+  (Ref: https://github.com/ocaml/ocaml/pull/10788)
+
 0.5.1 (02-01-2022)
 =====
 * Do not decode audio data when skipping frames
