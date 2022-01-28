@@ -604,7 +604,7 @@ CAMLprim value ocaml_mad_decode_frame_float_ba(value madf) {
 
   for (c = 0; c < chans; c++) {
     tmp = caml_ba_alloc_dims(CAML_BA_C_LAYOUT | CAML_BA_MANAGED, 1, NULL,
-                             mf->synth.pcm.length * sizeof(float));
+                             mf->synth.pcm.length);
     data = Caml_ba_data_val(tmp);
     caml_release_runtime_system();
     for (i = 0; i < mf->synth.pcm.length; i++)
