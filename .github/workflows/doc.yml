@@ -14,7 +14,8 @@ jobs:
     - name: Setup OCaml
       uses: avsm/setup-ocaml@v2
       with:
-        ocaml-compiler: ocaml-system
+        ocaml-compiler: 4.14.x
+        dune-cache: true
     - name: Pin locally
       run: opam pin -y add -n .
     - name: Install locally
