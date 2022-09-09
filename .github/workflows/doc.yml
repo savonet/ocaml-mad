@@ -14,7 +14,7 @@ jobs:
     - name: Setup OCaml
       uses: avsm/setup-ocaml@v2
       with:
-        ocaml-compiler: 4.14.0
+        ocaml-compiler: system
     - name: Pin locally
       run: opam pin -y add -n .
     - name: Install locally
