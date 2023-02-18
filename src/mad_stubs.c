@@ -587,6 +587,33 @@ CAMLprim value ocaml_mad_decode_frame_float(value madf) {
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_mad_decode_frame_floatarray(value madf) {
+  CAMLparam1(madf);
+  CAMLlocal1(ret);
+  madfile_t *mf = Madfile_val(madf);
+  int chans;
+  int i, c;
+
+  do {
+    mf_fill_buffer(mf);
+  } while (mf_decode(mf, 1) == 1);
+
+  chans = MAD_NCHANNELS(&mf->frame.header);
+  ret = caml_alloc_tuple(chans);
+
+  for (c = 0; c < chans; c++)
+    Store_field(
+        ret, c,
+        caml_alloc(mf->synth.pcm.length * Double_wosize, Double_array_tag));
+
+  for (c = 0; c < chans; c++)
+    for (i = 0; i < mf->synth.pcm.length; i++)
+      Store_double_flat_field(Field(ret, c), i,
+                              mad_f_todouble(mf->synth.pcm.samples[c][i]));
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_mad_decode_frame_float_ba(value madf) {
   CAMLparam1(madf);
   CAMLlocal2(ret, tmp);
@@ -658,8 +685,7 @@ CAMLprim value ocaml_mad_get_frame_format(value madf) {
   madfile_t *mf = Madfile_val(madf);
   int private = 0;
   if ((mf->frame.header.private_bits & MAD_PRIVATE_HEADER) > 0)
-  private
-  = 1;
+  private = 1;
   int copyright = 0;
   if ((mf->frame.header.flags & MAD_FLAG_COPYRIGHT) > 0)
     copyright = 1;

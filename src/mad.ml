@@ -97,6 +97,9 @@ external decode_frame : mad_file -> string = "ocaml_mad_decode_frame"
 external decode_frame_float : mad_file -> float array array
   = "ocaml_mad_decode_frame_float"
 
+external decode_frame_floatarray : mad_file -> floatarray array
+  = "ocaml_mad_decode_frame_floatarray"
+
 external decode_frame_float_ba :
   mad_file ->
   (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array

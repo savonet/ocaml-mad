@@ -1,3 +1,7 @@
+0.5.3 (unreleased)
+=====
+* Added `floatarray` API.
+
 0.5.2 (28-01-2022)
 =====
 * Let OCaml allocate bigarray's memory

@@ -1,5 +1,5 @@
 (lang dune 2.8)
-(version 0.5.2)
+(version 0.5.3)
 (name mad)
 (source (github savonet/ocaml-mad))
 (license GPL-2.0)

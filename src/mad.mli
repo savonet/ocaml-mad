@@ -129,6 +129,9 @@ val decode_frame : mad_file -> string
 (** Decode an mp3 frame. *)
 val decode_frame_float : mad_file -> float array array
 
+(** Decode an mp3 frame. *)
+val decode_frame_floatarray : mad_file -> floatarray array
+
 val decode_frame_float_ba :
   mad_file ->
   (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array
