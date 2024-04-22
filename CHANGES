@@ -1,4 +1,4 @@
-0.5.3 (unreleased)
+0.5.3 (2024-04-22)
 =====
 * Added `floatarray` API.
 * Added support for `libmad` pkg-config detection.
