@@ -87,12 +87,12 @@ let _ =
        Mad.skip_frame mf;
        begin
          match !synced with
-         | false when is_sync mf -> synced := true
-         | false -> ()
-         | true ->
-             let incr, char = get_bits mf !msg_char in
-             msg_char := char;
-             if incr then bit_pos := !bit_pos + 2
+           | false when is_sync mf -> synced := true
+           | false -> ()
+           | true ->
+               let incr, char = get_bits mf !msg_char in
+               msg_char := char;
+               if incr then bit_pos := !bit_pos + 2
        end;
        if !bit_pos > 7 then begin
          Printf.printf "%C%!" (char_of_int !msg_char);

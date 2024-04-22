@@ -1,6 +1,7 @@
 0.5.3 (unreleased)
 =====
 * Added `floatarray` API.
+* Added support for `libmad` pkg-config detection.
 
 0.5.2 (28-01-2022)
 =====
