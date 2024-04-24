@@ -2,7 +2,7 @@
 (version 0.5.3)
 (name mad)
 (source (github savonet/ocaml-mad))
-(license GPL-2.0)
+(license GPL-2.0-only)
 (authors "The Savonet Team <savonet-users@lists.sourceforge.net>")
 (maintainers "The Savonet Team <savonet-users@lists.sourceforge.net>")
 
