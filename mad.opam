@@ -12,6 +12,7 @@ bug-reports: "https://github.com/savonet/ocaml-mad/issues"
 depends: [
   "conf-pkg-config" {build}
   "conf-mad" {build}
+  "ocaml" {>= "4.08"}
   "dune" {>= "2.8"}
   "dune-configurator"
   "odoc" {with-doc}

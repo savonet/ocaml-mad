@@ -16,6 +16,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-mad :build)
+  (ocaml (>= 4.08))
   dune
   dune-configurator)
 )
