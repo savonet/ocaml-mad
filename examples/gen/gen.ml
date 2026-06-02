@@ -1,4 +1,7 @@
-(executable
+let () =
+  if Has_mad.available then
+    print_string
+      {|(executable
  (name decode_msg)
  (modules decode_msg)
  (libraries mad))
@@ -17,3 +20,5 @@
  (name mp3stream2wav)
  (modules mp3stream2wav)
  (libraries unix mad))
+
+|}

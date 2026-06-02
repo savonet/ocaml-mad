@@ -92,7 +92,7 @@ static short short_of_madfixed(mad_fixed_t sample) {
    * F ==> Fractional part bits
    *
    * This pattern contains MAD_F_FRACBITS fractional bits, one
-   * should alway use this macro when working on the bits of a fixed
+   * should always use this macro when working on the bits of a fixed
    * point number. It is not guaranteed to be constant over the
    * different platforms supported by libmad.
    *
@@ -350,7 +350,7 @@ static void mf_fill_buffer(madfile_t *mf) {
      * common situation occurs when mad_frame_decode() fails,
      * sets the stream error code to MAD_ERROR_BUFLEN, and
      * sets the next_frame pointer to a non NULL value. (See
-     * also the comment marked {2} bellow.)
+     * also the comment marked {2} below.)
      *
      * When this occurs, the remaining unused bytes must be
      * put back at the beginning of the buffer and taken in
@@ -408,7 +408,7 @@ static void mf_fill_buffer(madfile_t *mf) {
      * detected we append that quantity of bytes at the end of
      * the available data. Note that the buffer can't overflow
      * as the guard size was allocated but not used the the
-     * buffer managment code. (See also the comment marked
+     * buffer management code. (See also the comment marked
      * {1}.)
      *
      * In a message to the mad-dev mailing list on May 29th,
@@ -441,7 +441,7 @@ static void mf_fill_buffer(madfile_t *mf) {
   CAMLreturn0;
 }
 
-/* Returns 1 if a recoverable error occured, 0 else. */
+/* Returns 1 if a recoverable error occurred, 0 else. */
 static int mf_decode(madfile_t *mf, int synth) {
   int dec;
 
@@ -467,7 +467,7 @@ static int mf_decode(madfile_t *mf, int synth) {
    * mad_frame_decode() call. Some bytes may be left unused at
    * the end of the buffer if those bytes forms an incomplete
    * frame. Before refilling, the remainign bytes must be moved
-   * to the begining of the buffer and used for input for the
+   * to the beginning of the buffer and used for input for the
    * next mad_frame_decode() invocation. (See the comments marked
    * {1} earlier for more details.)
    *
@@ -497,7 +497,7 @@ static int mf_decode(madfile_t *mf, int synth) {
    * header structure. It is expressed as a fixed point number
    * whole data type is mad_timer_t. It is different from the
    * samples fixed point format and unlike it, it can't directly
-   * be added or substracted. The timer module provides several
+   * be added or subtracted. The timer module provides several
    * functions to operate on such numbers. Be careful there, as
    * some functions of mad's timer module receive some of their
    * mad_timer_t arguments by value!

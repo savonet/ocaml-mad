@@ -116,12 +116,11 @@ let duration file =
   let mf = openfile file in
   let close () = try close mf with _ -> () in
   try
-    begin
-      try
-        while true do
-          skip_frame mf
-        done
-      with _ -> ()
+    begin try
+      while true do
+        skip_frame mf
+      done
+    with _ -> ()
     end;
     let ret = float (get_current_time mf Centiseconds) /. 100. in
     close ();

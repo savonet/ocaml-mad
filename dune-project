@@ -1,4 +1,4 @@
-(lang dune 2.8)
+(lang dune 3.23)
 (version 0.5.3)
 (name mad)
 (source (github savonet/ocaml-mad))
@@ -11,12 +11,12 @@
 
 (package
  (name mad)
+ (allow_empty)
  (synopsis "Mad decoding library")
  (description "Bindings for the mad library which provides functions for encoding wave audio files into mp3")
  (depends
   (conf-pkg-config :build)
   (conf-mad :build)
   (ocaml (>= 4.08))
-  dune
   dune-configurator)
 )

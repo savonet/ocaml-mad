@@ -28,10 +28,10 @@
 
 (** {1 Exceptions} *)
 
-(** An error occured with libmad. *)
+(** An error occurred with libmad. *)
 exception Mad_error of string
 
-(** An error occured while reading a file. *)
+(** An error occurred while reading a file. *)
 exception Read_error of string
 
 (** The end of the mp3 stream was reached. *)
@@ -71,40 +71,31 @@ type read = bytes -> int -> int -> int
 (**
   * Open an mp3 file.
   *
-  * @raise Openfile_error if an error occured while trying to open the file.
+  * @raise Openfile_error if an error occurred while trying to open the file.
   *)
 val openfile : string -> mad_file
 
-(**
-  * [openstream read_func] opens a stream where [read_func n] should be a
-  * function which returns [n] bytes of data or less, the second component of
-  * the result being the number of bytes to read in the fist component.
-  *)
+(** * [openstream read_func] opens a stream where [read_func n] should be a *
+    function which returns [n] bytes of data or less, the second component of *
+    the result being the number of bytes to read in the fist component. *)
 val openstream : read -> mad_file
 
-(**
-  * Skip ID3 tags that may be present at 
-  * the beginning of a stream. This function
-  * may be used to a mp3 file opened using [openstream].
-  * ID3 tags are always skipped when using [openfile].
-  *
-  * [seek] is a callback to seek to an absolute
-  * position on the encoded data, and [tell] a callback
-  * to fetch the current position. [read] is the reading
-  * callback. *)
+(** * Skip ID3 tags that may be present at * the beginning of a stream. This
+    function * may be used to a mp3 file opened using [openstream]. * ID3 tags
+    are always skipped when using [openfile]. * * [seek] is a callback to seek
+    to an absolute * position on the encoded data, and [tell] a callback * to
+    fetch the current position. [read] is the reading * callback. *)
 val skip_id3tags : read:read -> seek:(int -> int) -> tell:(unit -> int) -> unit
 
 (**
   * Close an mp3 file previously opened with [openfile].
   *
-  * @raise Closefile_error if an error occured while trying to close the file.
+  * @raise Closefile_error if an error occurred while trying to close the file.
   *)
 val close : mad_file -> unit
 
-(**
-  * Get the current position (in bytes) of the decoder in the mp3 file which
-  * should have been opened with [openfile].
-  *)
+(** * Get the current position (in bytes) of the decoder in the mp3 file which *
+    should have been opened with [openfile]. *)
 val get_current_position : mad_file -> int
 
 type time_unit =
@@ -115,15 +106,11 @@ type time_unit =
   | Centiseconds
   | Milliseconds
 
-(**
-  * Get the current time position (in the given unit) of the decoder.
-  *)
+(** * Get the current time position (in the given unit) of the decoder. *)
 val get_current_time : mad_file -> time_unit -> int
 
-(** Decode an mp3 frame. 
-  * Returned data in interleaved when
-  * there are two channels, and mono data
-  * when there is only one. *)
+(** Decode an mp3 frame. * Returned data in interleaved when * there are two
+    channels, and mono data * when there is only one. *)
 val decode_frame : mad_file -> string
 
 (** Decode an mp3 frame. *)
@@ -136,8 +123,8 @@ val decode_frame_float_ba :
   mad_file ->
   (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t array
 
-(** Skip one frame. The current time/position is
-  * updated but the frame is not decoded. *)
+(** Skip one frame. The current time/position is * updated but the frame is not
+    decoded. *)
 val skip_frame : mad_file -> unit
 
 (*
@@ -149,6 +136,6 @@ val get_frame_format : mad_file -> frame_format
 (* This function is DEPRECATED. Please use [get_frame_format] instead. *)
 val get_output_format : mad_file -> int * int * int
 
-(** Compute the duration of a file, in seconds.
-  * Never raises any exception, but returns 0. in case of error. *)
+(** Compute the duration of a file, in seconds. * Never raises any exception,
+    but returns 0. in case of error. *)
 val duration : string -> float

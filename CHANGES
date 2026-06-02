@@ -20,7 +20,7 @@
 * Use conversion functions provided by OCaml for filename.
 * Cleanup decoding logic around EOF.
 * Add decode_frame_float_ba.
-* Remove unecessary global root.
+* Remove unnecessary global root.
 
 0.4.6 (17-09-2018)
 =====
@@ -49,7 +49,7 @@
   frame without decoding it. This helps
   for seeking in mp3 files and computing
   duration.
-  Functions added: 
+  Functions added:
     - [get_current_time]
     - [skip_frame]
 
@@ -94,9 +94,9 @@
 
 0.3.3 (16-04-2008)
 =====
-* More portable make invokation
+* More portable make invocation
 * Install .cmx file
-* Fixed crash in decoding routine due to recursive stack 
+* Fixed crash in decoding routine due to recursive stack
   overflow
 
 0.3.2 (17-10-2007)
@@ -106,7 +106,7 @@
 0.3.1 (22-05-2007)
 =====
 * Added decode_frame_float to decode directly to float arrays.
-* Added get_output_format to get the format of outputed PCM.
+* Added get_output_format to get the format of outputted PCM.
 
 0.3.0 (02-03-2007)
 =====
